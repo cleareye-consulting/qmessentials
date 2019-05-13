@@ -1,0 +1,14 @@
+/home/jmgant/Source/qmessentials/qmessentials-api/bin/Debug/netcoreapp2.2/qmessentials-api.deps.json
+/home/jmgant/Source/qmessentials/qmessentials-api/bin/Debug/netcoreapp2.2/qmessentials-api.runtimeconfig.json
+/home/jmgant/Source/qmessentials/qmessentials-api/bin/Debug/netcoreapp2.2/qmessentials-api.runtimeconfig.dev.json
+/home/jmgant/Source/qmessentials/qmessentials-api/bin/Debug/netcoreapp2.2/qmessentials-api.dll
+/home/jmgant/Source/qmessentials/qmessentials-api/bin/Debug/netcoreapp2.2/qmessentials-api.pdb
+/home/jmgant/Source/qmessentials/qmessentials-api/obj/Debug/netcoreapp2.2/qmessentials-api.csprojAssemblyReference.cache
+/home/jmgant/Source/qmessentials/qmessentials-api/obj/Debug/netcoreapp2.2/qmessentials-api.csproj.CoreCompileInputs.cache
+/home/jmgant/Source/qmessentials/qmessentials-api/obj/Debug/netcoreapp2.2/qmessentials-api.RazorAssemblyInfo.cache
+/home/jmgant/Source/qmessentials/qmessentials-api/obj/Debug/netcoreapp2.2/qmessentials-api.RazorAssemblyInfo.cs
+/home/jmgant/Source/qmessentials/qmessentials-api/obj/Debug/netcoreapp2.2/qmessentials-api.AssemblyInfoInputs.cache
+/home/jmgant/Source/qmessentials/qmessentials-api/obj/Debug/netcoreapp2.2/qmessentials-api.AssemblyInfo.cs
+/home/jmgant/Source/qmessentials/qmessentials-api/obj/Debug/netcoreapp2.2/qmessentials-api.RazorTargetAssemblyInfo.cache
+/home/jmgant/Source/qmessentials/qmessentials-api/obj/Debug/netcoreapp2.2/qmessentials-api.dll
+/home/jmgant/Source/qmessentials/qmessentials-api/obj/Debug/netcoreapp2.2/qmessentials-api.pdb
