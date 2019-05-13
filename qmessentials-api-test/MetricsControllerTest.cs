@@ -23,7 +23,7 @@ namespace QMEssentials.API.Test
             {
                 Name = "Test Metric 1"
             };
-            await controller.CreateMetric(metric);
+            await controller.Post(metric);
 
         }
     }

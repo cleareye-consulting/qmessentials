@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using QMEssentials.API.Models;
@@ -7,16 +8,17 @@ namespace QMEssentials.API.Controllers
 
     [Route("api/[controller]")]
     [ApiController]
-    public class MetricsController : ControllerBase
+    public class MetricsController
     {
-        private IQMEssentialsContext repository;
+        private QMEssentialsContext repository;
 
-        public MetricsController(IQMEssentialsContext repository) => this.repository = repository;
+        public MetricsController(QMEssentialsContext repository) => this.repository = repository;
 
-        [HttpGet]
-        public async Task CreateMetric(Metric metric)
+        public async Task Post(Metric metric)
         {
-            await repository.Metrics.AddAsync(metric);
+            Console.WriteLine($"Request received: {metric.Name} {metric.ResultType}");
+            await repository.Metric.AddAsync(metric);
+            await repository.SaveChangesAsync();
         }
 
     }
