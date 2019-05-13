@@ -26,9 +26,9 @@ x64/
 x86/
 build/
 bld/
-[Bb]in/
-[Oo]bj/
-[Oo]ut/
+bin/
+obj/
+out/
 msbuild.log
 msbuild.err
 msbuild.wrn
