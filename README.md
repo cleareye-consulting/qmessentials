@@ -1,2 +1,2 @@
 # QMEssentials
-QMEssentials, a sample quality management application for manufacturing SMBs
+QMEssentials, a simple quality management application for small to medium-sized businesses who make things.
