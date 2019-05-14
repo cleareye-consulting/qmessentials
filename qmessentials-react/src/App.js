@@ -13,7 +13,7 @@ export default class App extends Component {
         <Layout>
           <Route path="/" exact component={Home} />
           <Route path="/metrics" exact component={Metrics} />
-          <Route path="/metric" exact component={MetricEditor}/>
+          <Route path="/metric/:name?" exact component={MetricEditor}/>
         </Layout>
       </BrowserRouter>
     )
