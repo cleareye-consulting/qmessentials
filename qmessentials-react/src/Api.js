@@ -1,12 +1,10 @@
-export default class Api {
-    postMetric(metric) {
-        return fetch(
-            'https:localhost:5001/api/Metric',
-            {
-                method: 'POST',
-                mode: 'cors',
-                body: JSON.stringify(metric)
-            })
+import axios from 'axios'
 
+export default class Api {
+    postMetric(metric) {        
+        return axios.post(
+            'https://localhost:5001/api/Metrics',
+            metric
+        )
     }
 }
