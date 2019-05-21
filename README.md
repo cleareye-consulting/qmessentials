@@ -40,4 +40,4 @@ QMEssentials comes in three "sizes":
 
 QMEssentials is free, open-source software distributed under a permissive MIT license. Any individual or organization can download and use the software for any purpose, commercial or otherwise.
 
-**QMEssentials is in the early stages of development. Contributions are welcome.**
+**QMEssentials is in the early stages of development. Contributions are welcome. Check out the [Trello board]( https://trello.com/b/xAjdb5mN)!**
