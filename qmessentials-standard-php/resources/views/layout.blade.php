@@ -1,7 +1,7 @@
 <html>
     <head>
         <title>QMEssentials | @yield('title')</title>
-        <link rel="stylesheet" href="css/app.css">
+        <link rel="stylesheet" href="/css/app.css">
     </head>
     <body>
         <section class="section">

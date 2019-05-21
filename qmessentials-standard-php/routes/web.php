@@ -15,6 +15,10 @@ Route::get('/', function () {
     return view('index');
 });
 
-Route::get('/metrics', function() {
-    return view('metrics');
-});
+// Route::get('/metrics', function() {
+//     return view('metrics');
+// });
+
+Route::resources([
+    'metrics' => 'MetricController'
+]);

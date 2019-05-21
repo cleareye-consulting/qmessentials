@@ -1,4 +1,6 @@
-use mqessentials;
+create database qmessentials;
+
+use qmessentials;
 
 create table metric (
 	metric_name varchar (500) primary key,
