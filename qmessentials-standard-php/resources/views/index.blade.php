@@ -4,6 +4,6 @@
 
 @section('content')
     <ul>
-        <li>Create Metric</li>
+        <li><a href="metrics">Metrics</a></li>
     </ul>
 @endsection
