@@ -12,12 +12,12 @@ QMEssentials comes in three "sizes":
 * Requires only Microsoft Windows and Microsoft Access and a shared location to store the file; no application server or database server needed
 
 #### QMEssentials Standard
-* Built on PHP and PostgreSQL
+* Built on PHP and MySQL
 * Suitable for one or possibly two plants, 50 or more quality operators, hundreds of transactions per minute
 * Single or multiple numeric results per metric
 * Built-in reports: observations by lot or product, observations out of range
 * Password-based user authentication, role-based authorization
-* Requires PHP and PostgreSQL on server (can be same server, one or both can be cloud-based) and a modern web browser
+* Requires PHP and MySQL on server (can be same server, one or both can be cloud-based) and a modern web browser
 
 #### QMEssentials Enterprise
 * NoSQL database (probably DynamoDB or MongoDB) with reporting engine in ASP.NET Core, API in Express/Node, and user interface in React
