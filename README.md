@@ -1,5 +1,5 @@
 # QMEssentials
-QMEssentials, a simple quality management application for small to medium-sized businesses who make things.
+QMEssentials is a simple quality management application for small to medium-sized businesses who make things.
 
 QMEssentials comes in three "sizes":
 
