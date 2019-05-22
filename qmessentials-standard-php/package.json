@@ -22,7 +22,5 @@
         "sass-loader": "^7.1.0",
         "vue": "^2.5.17"
     },
-    "dependencies": {
-        "bulma": "^0.7.5"
-    }
+    "dependencies": {}
 }
