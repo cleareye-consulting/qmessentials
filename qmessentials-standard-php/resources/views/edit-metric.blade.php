@@ -31,11 +31,11 @@
         </div>
         <div class="form-group">
             <label class="control-label" for="industry_standards">Industry Standards</label>
-            <textarea class="form-control" type="text" id="industry_standards" name="industry_standards" value="{{implode('\n', $metric->industry_standards)}}"></textarea>
+            <textarea class="form-control" type="text" id="industry_standards" name="industry_standards">{{implode("\n", $metric->industry_standards)}}</textarea>
         </div>     
         <div class="form-group">
             <label class="control-label" for="methodology_references">Methodology References</label>
-            <textarea class="form-control" type="text" id="methodology_references" name="methodology_references" value="{{implode('\n', $metric->methodology_references)}}"></textarea>
+            <textarea class="form-control" type="text" id="methodology_references" name="methodology_references">{{implode("\n", $metric->methodology_references)}}</textarea>
         </div>      
         <div class="form-group">
             <button class="btn btn-primary">Save Changes</button>
