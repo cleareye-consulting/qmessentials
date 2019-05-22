@@ -13,7 +13,7 @@
         <tbody>
         @foreach($metrics as $metric) 
             <tr>
-                <td>{{$metric->metric_name}}</td>
+                <td><a href="/metrics/{{$metric->metric_id}}/edit">{{$metric->metric_name}}</a></td>
             </tr>
         @endforeach
         </tbody>

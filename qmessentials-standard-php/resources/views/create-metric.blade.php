@@ -36,7 +36,7 @@
             <textarea class="form-control" type="text" id="methodology_references" name="methodology_references"></textarea>
         </div>      
         <div class="form-group">
-            <button class="btn btn-primary">Submit</button>
+            <button class="btn btn-primary">Add Metric</button>
             <a class="btn btn-default" href="/metrics">Cancel</a>
         </div>
     </form>
