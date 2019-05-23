@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>QMEssentials | @yield('title')</title>
+        <title>QMEssentials Standard | @yield('title')</title>
         <link rel="stylesheet" href="/css/app.css">
     </head>
     <body>
