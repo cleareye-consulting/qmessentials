@@ -39,43 +39,51 @@ class MetricController extends Controller
         $metric_id = DB::table('metric')->insertGetId([
             'metric_name' => $request->input('metric_name'), 
             'has_multiple_results' => ($request->input('has_multiple_results') == 'on')
-            ]);
+            ]);        
+        $sortOrder = 1;
         $availableUnits = 
             array_map(
-                function($item) use ($metric_id) {
+                function($item) use ($metric_id, &$sortOrder) {
                     return [
-                        'metric_id' => $metric_id, 
-                        'unit' => $item
+                        'metric_id' => $metric_id,                         
+                        'unit' => $item,
+                        'sort_order' => $sortOrder++
                     ];
                 }, 
-                preg_split('/[,\s]+/', $request->input('available_units'), -1, PREG_SPLIT_NO_EMPTY));
+                preg_split('/[,\s]+/', $request->input('available_units'), -1, PREG_SPLIT_NO_EMPTY));        
         DB::table('metric_available_unit')->insert($availableUnits);
+        $sortOrder = 1;
         $availableQualifiers = 
             array_map(
-                function($item) use ($metric_id) {
+                function($item) use ($metric_id, &$sortOrder) {
                     return [
                         'metric_id' => $metric_id, 
-                        'qualifier' => $item
+                        'qualifier' => $item,
+                        'sort_order' => $sortOrder++
                     ];
                 }, 
                 preg_split('/[,\s]+/', $request->input('available_qualifiers'), -1, PREG_SPLIT_NO_EMPTY));
         DB::table('metric_available_qualifier')->insert($availableQualifiers);
+        $sortOrder = 1;
         $industryStandards = 
             array_map(
-                function($item) use ($metric_id) {
+                function($item) use ($metric_id, &$sortOrder) {
                     return [
                         'metric_id' => $metric_id, 
-                        'industry_standard' => rtrim($item)
+                        'industry_standard' => rtrim($item),
+                        'sort_order' => $sortOrder++
                     ];
                 }, 
                 preg_split('/[\n]+/', $request->input('industry_standards'), -1, PREG_SPLIT_NO_EMPTY));
         DB::table('metric_industry_standard')->insert($industryStandards);
+        $sortOrder = 1;
         $methodologyReferences = 
             array_map(
-                function($item) use ($metric_id) {
+                function($item) use ($metric_id, &$sortOrder) {
                     return [
                         'metric_id' => $metric_id, 
-                        'methodology_reference' => rtrim($item)
+                        'methodology_reference' => rtrim($item),
+                        'sort_order' => $sortOrder++
                     ];
                 }, 
                 preg_split('/[\n]+/', $request->input('methodology_references'), -1, PREG_SPLIT_NO_EMPTY));
@@ -107,25 +115,25 @@ class MetricController extends Controller
             function($item) {
                 return $item->qualifier;
             },
-            DB::table('metric_available_qualifier')->select('qualifier')->where('metric_id', $id)->get()->toArray());
+            DB::table('metric_available_qualifier')->select('qualifier')->where('metric_id', $id)->orderBy('sort_order')->get()->toArray());
         $availableUnits = array_map(
             function($item) {
                 return $item->unit;
             },
-            DB::table('metric_available_unit')->select('unit')->where('metric_id', $id)->get()->toArray());
+            DB::table('metric_available_unit')->select('unit')->where('metric_id', $id)->orderBy('sort_order')->get()->toArray());
         $industryStandards = 
             array_map(
                 function($item) {
                     return $item->industry_standard;
                 },
-                DB::table('metric_industry_standard')->select('industry_standard')->where('metric_id', $id)->get()->toArray()
+                DB::table('metric_industry_standard')->select('industry_standard')->where('metric_id', $id)->orderBy('sort_order')->get()->toArray()
             );        
         $methodologyReferences = 
             array_map(
                 function($item) {
                     return $item->methodology_reference;
                 },
-                DB::table('metric_methodology_reference')->select('methodology_reference')->where('metric_id', $id)->get()->toArray()
+                DB::table('metric_methodology_reference')->select('methodology_reference')->where('metric_id', $id)->orderBy('sort_order')->get()->toArray()
             );
         $model = [
             'metric_id' => $metric->metric_id,
@@ -154,43 +162,51 @@ class MetricController extends Controller
         DB::table('metric_available_qualifier')->where('metric_id', $id)->delete();
         DB::table('metric_available_unit')->where('metric_id', $id)->delete();
         DB::table('metric_industry_standard')->where('metric_id', $id)->delete();
-        DB::table('metric_methodology_reference')->where('metric_id', $id)->delete();
+        DB::table('metric_methodology_reference')->where('metric_id', $id)->delete();        
+        $sortOrder = 1;
         $availableUnits = 
             array_map(
-                function($item) use ($id) {
+                function($item) use ($id, &$sortOrder) {
                     return [
                         'metric_id' => $id, 
-                        'unit' => $item
+                        'unit' => $item,
+                        'sort_order' => $sortOrder++
                     ];
                 }, 
                 preg_split('/[,\s]+/', $request->input('available_units'), -1, PREG_SPLIT_NO_EMPTY));
         DB::table('metric_available_unit')->insert($availableUnits);
+        $sortOrder = 1;
         $availableQualifiers = 
             array_map(
-                function($item) use ($id) {
+                function($item) use ($id, &$sortOrder) {
                     return [
                         'metric_id' => $id, 
-                        'qualifier' => $item
+                        'qualifier' => $item,
+                        'sort_order' => $sortOrder++
                     ];
                 }, 
                 preg_split('/[,\s]+/', $request->input('available_qualifiers'), -1, PREG_SPLIT_NO_EMPTY));
         DB::table('metric_available_qualifier')->insert($availableQualifiers);
+        $sortOrder = 1;
         $industryStandards = 
             array_map(
-                function($item) use ($id) {
+                function($item) use ($id, &$sortOrder) {
                     return [
                         'metric_id' => $id, 
-                        'industry_standard' => rtrim($item)
+                        'industry_standard' => rtrim($item),
+                        'sort_order' => $sortOrder++
                     ];
                 }, 
                 preg_split('/[\n]+/', $request->input('industry_standards'), -1, PREG_SPLIT_NO_EMPTY));
         DB::table('metric_industry_standard')->insert($industryStandards);
+        $sortOrder = 1;
         $methodologyReferences = 
             array_map(
-                function($item) use ($id) {
+                function($item) use ($id, &$sortOrder) {
                     return [
                         'metric_id' => $id, 
-                        'methodology_reference' => rtrim($item)
+                        'methodology_reference' => rtrim($item),
+                        'sort_order' => $sortOrder++
                     ];
                 }, 
                 preg_split('/[\n]+/', $request->input('methodology_references'), -1, PREG_SPLIT_NO_EMPTY));
