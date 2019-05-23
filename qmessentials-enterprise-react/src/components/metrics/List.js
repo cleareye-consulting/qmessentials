@@ -14,9 +14,7 @@ export default class Metrics extends Component {
 
     async componentDidMount() {
         const api = new Api()
-        console.log('Getting metrics')
         const metrics = (await api.listMetrics())
-        console.log(metrics)
         this.setState({ metrics: metrics })
     }
 
