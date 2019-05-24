@@ -13,11 +13,11 @@
 
 Route::get('/', function () {
     return view('index');
-});
+})->middleware('auth');
 
-// Route::get('/metrics', function() {
-//     return view('metrics');
-// });
+Route::get('/home', 'HomeController@index')->name('home')->middleware('auth');
+
+Auth::routes();
 
 Route::resources([
     'metrics' => 'MetricController'

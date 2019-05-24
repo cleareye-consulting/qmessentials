@@ -39,3 +39,20 @@ create table metric_methodology_reference (
     constraint pk_metric_methodology_reference primary key (metric_id, methodology_reference),
     constraint fk_metric_methodology_reference_metric foreign key (metric_id) references metric (metric_id)
 );
+
+create table users (
+	id int auto_increment primary key,
+	name varchar (100) not null,
+    email varchar (500) not null,
+    password varchar (255) not null,
+    remember_token varchar (100) null,
+    created_at datetime not null,
+    updated_at datetime null    
+);
+
+create table password_resets (
+	id int auto_increment primary key,
+    email varchar (500) not null,
+    token varchar (100) null,
+    created_at datetime not null
+);

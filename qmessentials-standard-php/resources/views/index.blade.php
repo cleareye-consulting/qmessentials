@@ -1,9 +1,11 @@
-@extends('layout')
+@extends('layouts/app')
 
 @section('title','Home')
 
 @section('content')
-    <ul>
-        <li><a href="metrics">Metrics</a></li>
-    </ul>
+    <div class="container">
+        <ul>
+            <li><a href="metrics">Metrics</a></li>
+        </ul>
+    </div>
 @endsection

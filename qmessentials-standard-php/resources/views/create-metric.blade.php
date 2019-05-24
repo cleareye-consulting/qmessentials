@@ -1,10 +1,10 @@
-@extends('layout')
+@extends('layouts/app')
 
 @section('title','Create Metric')
 
-@section('content')
-    <h2 class="subtitle">Create Metric</h2>  
+@section('content')    
     <div class="container">
+    <h2 class="subtitle">Create Metric</h2>  
     <form class="form" action="/metrics" method="POST">
         {{csrf_field()}}
         <div class="form-group">

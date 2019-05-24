@@ -1,10 +1,10 @@
-@extends('layout')
+@extends('layouts/app')
 
 @section('title','Edit Metric')
 
-@section('content')
-    <h2 class="subtitle">Edit Metric</h2>  
+@section('content')    
     <div class="container">
+    <h2 class="subtitle">Edit Metric</h2>  
     <form class="form" action="/metrics/{{$metric->metric_id}}" method="POST">
         {{csrf_field()}}
         <input type="hidden" id="metric_id" name="metric_id" value="{{$metric->metric_id}}"/>
