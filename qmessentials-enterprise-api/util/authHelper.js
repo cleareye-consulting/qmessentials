@@ -20,8 +20,7 @@ exports.getAuthenticatedUserId = async function (authorizationHeader) {
     const token = /^Bearer (.*)$/.exec(authorizationHeader)[1];
     const secret = config.jwtSecret;
     const decodedValue = await verify(token, secret);
-    return decodedValue;
-        
+    return decodedValue;        
 }
 
 

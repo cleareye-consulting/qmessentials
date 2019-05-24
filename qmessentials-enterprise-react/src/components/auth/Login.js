@@ -23,15 +23,22 @@ export default class Login extends Component {
 
     async handleSubmit(event) {        
         event.preventDefault()
-        const login = this.state.login;
-        const api = new ApiConnector()
-        const token = await api.logIn(login)
-        if (token) {
-            localStorage.sessionToken = token
-            this.props.history.push('/')
+        try {
+            const login = this.state.login;
+            const api = new ApiConnector()
+            const token = await api.logIn(login)
+            if (token) {
+                localStorage.sessionToken = token
+                localStorage.sessionDate = +(new Date())
+                this.props.onSessionTokenSet()
+            }
+            else {
+                this.setState({ failed: true })
+            }
         }
-        else {
-            this.setState({failed: true})
+        catch (error) {
+            console.error(error)
+            this.setState({ failed: true })
         }
     }
 
