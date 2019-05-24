@@ -1,8 +1,14 @@
 import axios from 'axios'
 
 export default class ApiConnector {
+
+    async logIn(login) {
+        const token = await axios.post(process.env.REACT_APP_API_ENDPOINT + '/logins', login)        
+        return token.data
+    }
+
     async listMetrics(filter) {
-        var metrics = await axios.get(process.env.REACT_APP_API_ENDPOINT + '/metrics', {
+        const metrics = await axios.get(process.env.REACT_APP_API_ENDPOINT + '/metrics', {
             params: {
                 filter: filter
             }

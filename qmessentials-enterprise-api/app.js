@@ -59,7 +59,7 @@ const authHelper = require('./util/authHelper');
 const extractUserId = async function (req, res, next) {
     if (!req.headers.authorization) {
 		console.warn('Authorization header not found');
-        res.send(403);
+        res.sendStatus(403);
     }
     try {
         res.locals.userId = await authHelper.getAuthenticatedUserId(req.headers.authorization);
