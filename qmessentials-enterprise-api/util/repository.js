@@ -25,8 +25,22 @@ module.exports = class repository {
     async saveMetric(metric) {
         const mongo = await MongoClient.connect(url, { useNewUrlParser: true });
         if (metric._id) {
-            metric._id = ObjectID(metric._id);
-            await mongo.db(dbName).collection('metrics').updateOne(metric._id, metric, {});
+            await mongo.db(dbName).collection('metrics').updateOne(
+                {
+                    _id: ObjectID(metric._id)
+                },
+                {
+                    $set: {
+                        "availableQualifiers": metric.availableQualifiers,
+                        "availableUnits": metric.availableUnits,
+                        "resultType": metric.resultType,
+                        "hasMultipleResults": metric.hasMultipleResults,
+                        "industryStandards": metric.industryStandards,
+                        "methodologyReferences": metric.methodologyReferences
+                    }
+                },
+                {}
+            );
         }
         else {
             await mongo.db(dbName).collection('metrics').insertOne(metric);  
@@ -44,8 +58,20 @@ module.exports = class repository {
     async saveUser(user) {
         const mongo = await MongoClient.connect(url, { useNewUrlParser: true });
         if (user._id) {
-            user._id = ObjectID(user._id);
-            await mongo.db(dbName).collection('users').updateOne(user._id, user, {});
+            await mongo.db(dbName).collection('users').updateOne(
+                {
+                    _id: ObjectID(user._id),
+                },
+                {
+                    $set: {
+                        "userId": user.userId,
+                        "password": user.password,
+                        "roles": user.roles,
+                        "isActive": user.isActive
+                    }
+                },
+                {}
+            );
         }
         else {
             await mongo.db(dbName).collection('users').insertOne(user);
