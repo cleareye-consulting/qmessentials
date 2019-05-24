@@ -1,4 +1,4 @@
-const repository = require('../repository');
+const repository = require('../util/repository');
 
 exports.list = async function (req, res) {
     try {

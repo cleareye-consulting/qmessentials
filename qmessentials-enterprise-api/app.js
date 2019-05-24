@@ -37,17 +37,35 @@ app.use(morgan(loggerFormat, {
     stream: process.stdout
 }));
 
-const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
-const metricsRouter = require('./routes/metrics');
-
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const indexRouter = require('./routes/index');
+const loginsRouter = require('./routes/logins');
+const usersRouter = require('./routes/users');
+const metricsRouter = require('./routes/metrics');
+
+
 app.use('/', indexRouter);
+app.use('/logins', loginsRouter);
+
+//Routes beyond this point require authentication
+
+const authHelper = require('./util/authHelper');
+
+const extractUserId = function (req, res, next) {
+    if (!req.headers.authorization) {
+		console.warn('Authorization header not found');
+        res.send(403);
+    }
+    res.locals.userId = authHelper.getAuthenticatedUserId(req.headers.authorization);
+};
+
+app.use(extractUserId);
+
 app.use('/users', usersRouter);
 app.use('/metrics', metricsRouter);
 
