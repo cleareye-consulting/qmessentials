@@ -56,12 +56,19 @@ app.use('/logins', loginsRouter);
 
 const authHelper = require('./util/authHelper');
 
-const extractUserId = function (req, res, next) {
+const extractUserId = async function (req, res, next) {
     if (!req.headers.authorization) {
 		console.warn('Authorization header not found');
         res.send(403);
     }
-    res.locals.userId = authHelper.getAuthenticatedUserId(req.headers.authorization);
+    try {
+        res.locals.userId = await authHelper.getAuthenticatedUserId(req.headers.authorization);
+        next();
+    }
+    catch (error) {
+        console.error(error);
+        res.send(500);
+    }
 };
 
 app.use(extractUserId);
