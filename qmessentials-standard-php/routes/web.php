@@ -20,5 +20,10 @@ Route::get('/home', 'HomeController@index')->name('home')->middleware('auth');
 Auth::routes();
 
 Route::resources([
-    'metrics' => 'MetricController'
+    'metrics' => 'MetricController',
+    'test-plans' => 'TestPlanController',
+    'test-plan-metrics' => 'TestPlanMetricController'
 ]);
+
+Route::get('/api/available-qualifiers/{metric_id}', 'MetricController@getAvailableQualifiers');
+Route::get('/api/available-units/{metric_id}', 'MetricController@getAvailableUnits');

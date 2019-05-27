@@ -5,7 +5,8 @@ use qmessentials;
 create table metric (
 	metric_id int auto_increment primary key,
 	metric_name varchar (500) not null,
-    has_multiple_results bit not null
+    has_multiple_results bit not null,
+    is_active bit not null
 );
 
 create table metric_available_qualifier (
@@ -56,3 +57,29 @@ create table password_resets (
     token varchar (100) null,
     created_at datetime not null
 );
+
+create table test_plan (
+	test_plan_id int auto_increment primary key,
+    test_plan_name varchar (500) not null,
+    is_active bit not null
+);
+
+create table test_plan_metric (
+	test_plan_metric_id int auto_increment primary key,
+	test_plan_id int not null,
+    metric_id int not null,
+    sort_order int not null,
+    qualifier varchar (500) null,
+    unit varchar (100) null,
+    usage_code varchar (10) null,
+    is_nullable bit not null,
+    min_value float null,
+    is_min_value_inclusive bit null,
+    max_value float null,
+    is_max_value_inclusive bit null,
+    is_active bit not null,
+    constraint fk_test_plan_metric_test_plan foreign key (test_plan_id) references test_plan (test_plan_id),
+    constraint fk_test_plan_metric_metric foreign key (metric_id) references metric (metric_id)
+);
+
+create unique index ix_test_plan_metric_alternate_key on test_plan_metric (test_plan_id, metric_id);

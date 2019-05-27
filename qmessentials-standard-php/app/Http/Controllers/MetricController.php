@@ -43,6 +43,7 @@ class MetricController extends Controller
     {        
         $metric_id = DB::table('metric')->insertGetId([
             'metric_name' => $request->input('metric_name'), 
+            'is_active' => true,
             'has_multiple_results' => ($request->input('has_multiple_results') == 'on')
             ]);        
         $sortOrder = 1;
@@ -107,6 +108,24 @@ class MetricController extends Controller
         //
     }
 
+    public function getAvailableQualifiers($metric_id) {
+        $availableQualifiers = array_map(
+            function($item) {
+                return $item->qualifier;
+            },
+            DB::table('metric_available_qualifier')->select('qualifier')->where('metric_id', $metric_id)->orderBy('sort_order')->get()->toArray());
+        return response()->json($availableQualifiers);
+    }
+
+    public function getAvailableUnits($metric_id) {
+        $availableUnits = array_map(
+            function($item) {
+                return $item->unit;
+            },
+            DB::table('metric_available_unit')->select('unit')->where('metric_id', $metric_id)->orderBy('sort_order')->get()->toArray());
+        return response()->json($availableUnits);
+    }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -147,7 +166,8 @@ class MetricController extends Controller
             'available_qualifiers' => $availableQualifiers,
             'available_units' => $availableUnits,
             'industry_standards' => $industryStandards,
-            'methodology_references' => $methodologyReferences
+            'methodology_references' => $methodologyReferences,
+            'is_active' => $metric->is_active
         ];
         return view('edit-metric', ['metric' => (object)$model]);
     }
