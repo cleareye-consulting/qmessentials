@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TestPlanController extends Controller
 {
@@ -99,17 +100,16 @@ class TestPlanController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($id, $test_plan_metric_id_under_edit = NULL)
     {
         $test_plan = DB::table('test_plan')->where('test_plan_id', $id)->first();
         $test_plan_metrics = 
         array_map(            
             function($tpm) {
-                $metric_name = '';# DB::table('metric')->where('metric_id', $tpm->metric_id)->first()->value('metric_name');
                 return (object) [
                     'test_plan_metric_id' => $tpm->test_plan_metric_id,
                     'metric_id' => $tpm->metric_id,
-                    'metric_name' => $metric_name,
+                    'metric_name' => $tpm->metric_name,
                     'test_plan_id' => $tpm->test_plan_id,
                     'sort_order' => $tpm->sort_order,
                     'qualifier' => $tpm->qualifier,
@@ -120,64 +120,94 @@ class TestPlanController extends Controller
                     'is_active' => $tpm->is_active
                 ];
             },
-            DB::table('test_plan_metric')->where([['test_plan_id', $id],['is_active',true]])->get()->toArray()
+            DB::table('test_plan_metric')
+                ->join('metric', 'test_plan_metric.metric_id', '=', 'metric.metric_id')
+                ->where([['test_plan_metric.test_plan_id', $id],['test_plan_metric.is_active',true]])
+                ->select(['test_plan_metric.test_plan_id', 'test_plan_metric.test_plan_metric_id', 'metric.metric_id','metric.metric_name',
+                    'test_plan_metric.sort_order','test_plan_metric.qualifier','test_plan_metric.unit','test_plan_metric.usage_code',
+                    'test_plan_metric.min_value','test_plan_metric.is_min_value_inclusive','test_plan_metric.max_value',
+                    'test_plan_metric.is_max_value_inclusive','test_plan_metric.is_nullable','test_plan_metric.is_active'])
+                ->orderby('test_plan_metric.sort_order')
+                ->get()
+                ->toArray()
         );
+        $availableQualifiersForEdit = NULL;
+        $availableUnitsForEdit = NULL;
         $metrics = DB::table('metric')->where('is_active',true)->select('metric_id', 'metric_name')->get();        
+        if (!is_null($test_plan_metric_id_under_edit)) {
+            $metric_id = DB::table('test_plan_metric')->where('test_plan_metric_id',$test_plan_metric_id_under_edit)->value('metric_id');
+            $availableQualifiersForEdit = array_map(
+                function($item) {
+                    return $item->qualifier;
+                },
+                DB::table('metric_available_qualifier')->select('qualifier')->where('metric_id', $metric_id)->orderBy('sort_order')->get()->toArray());
+            $availableUnitsForEdit = array_map(
+                function($item) {
+                    return $item->unit;
+                },
+                DB::table('metric_available_unit')->select('unit')->where('metric_id', $metric_id)->orderBy('sort_order')->get()->toArray());
+        }
         return view('edit-test-plan', 
             [
                 'test_plan' => $test_plan, 
                 'test_plan_metrics' => $test_plan_metrics,
-                'metrics' => $metrics
+                'metrics' => $metrics,
+                'test_plan_metric_id_under_edit' => $test_plan_metric_id_under_edit,
+                'available_qualifiers_for_edit' => $availableQualifiersForEdit,
+                'available_units_for_edit' => $availableUnitsForEdit
             ]
         );
+    }
+
+    private function parse_criteria(string $range) {
+        if (preg_match('/^(>|>=|<=|<|=)?\s*([\d\.,])+$/', $range, $matches)) {
+            if ($matches[1] == '<') {
+                return ['min_value' => null, 'is_min_value_inclusive' => null,  'max_value' => floatval($matches[2]), 'is_max_value_inclusive' => false];
+            }
+            if ($matches[1] == '<=') {
+                return ['min_value' => null, 'is_min_value_inclusive' => null,  'max_value' => floatval($matches[2]), 'is_max_value_inclusive' => true];
+            }
+            if ($matches[1] == '>') {
+                return ['min_value' => floatval($matches[2]), 'is_min_value_inclusive' => false,  'max_value' => null, 'is_max_value_inclusive' => null];
+            }
+            if ($matches[1] == '>=') {
+                return ['min_value' => floatval($matches[2]), 'is_min_value_inclusive' => true,  'max_value' => null, 'is_max_value_inclusive' => null];
+            }        
+            if ($matches[1] == '=') {
+                return ['min_value' => floatval($matches[2]), 'is_min_value_inclusive' => true,  'max_value' => floatval($matches[2]), 'is_max_value_inclusive' => true];
+            }
+        }
+        else if (preg_match('/^([\[\)])?([\d\.,]+)?\s*(\-|\.\.\.)?\s*([\d\.,]+)?(\]|\))?$/', $range, $matches)) {
+            return [
+                'min_value' => (is_null($matches[2]) ? null : floatval($matches[2])),
+                'is_min_value_inclusive' => $matches[1] == '[',
+                'max_value' => (is_null($matches[4]) ? null : floatval($matches[4])),
+                'is_max_value_inclusive' => $matches[5] == ']'
+            ];
+        }
+        return ['min_value' => null, 'is_min_value_inclusive' => null,  'max_value' => null, 'is_max_value_inclusive' => null];
     }
 
     private function reconstruct_criteria(float $min_value, bool $is_min_value_inclusive, float $max_value, float $is_max_value_exclusive) {
         if (!is_null($min_value)) {
             if (!is_null($max_value)) {
                 if ($min_value == $max_value) {
-                    return strval($min_value);
+                    return $min_value;
                 }
                 else {
-                    return ($is_min_value_inclusive ? '[' : '(') + strval($min_value) + '..' + strval($max_value) + ($is_max_value_exclusive ? ']' : ')');
+                    return ($is_min_value_inclusive ? '[' : '(') . $min_value . '..' . $max_value . ($is_max_value_exclusive ? ']' : ')');
                 }
             }            
             else {
-                return '>' + ($is_min_value_inclusive ? '=' : '') + strval($min_value);
+                return '>' . ($is_min_value_inclusive ? '=' : '') . $min_value;
             }
         }
         else {
             if (!is_null($max_value)) {
-                return '<' + ($is_max_value_inclusive ? '=' : '') + strval($max_value);
+                return '<' . ($is_max_value_inclusive ? '=' : '') . $max_value;
             }
         }
         return '';
-    }
-
-    private function parse_criteria(string $range) {
-        $single_value = preg_match('/^(>|>=|<=|<|=)?\s([\d\.,])+$/', $range);
-        if ($single_value[0] == '<') {
-            return ['min_value' => floatval($single_value[1]), 'is_min_value_inclusive' => false,  'max_value' => null, 'is_max_value_inclusive' => false];
-        }
-        if ($single_value[0] == '<=') {
-            return ['min_value' => floatval($single_value[1]), 'is_min_value_inclusive' => true,  'max_value' => null, 'is_max_value_inclusive' => false];
-        }
-        if ($single_value[0] == '>') {
-            return ['min_value' => null, 'is_min_value_inclusive' => false,  'max_value' => floatval($single_value[1]), 'is_max_value_inclusive' => false];
-        }
-        if ($single_value[0] == '>=') {
-            return ['min_value' => null, 'is_min_value_inclusive' => false,  'max_value' => floatval($single_value[1]), 'is_max_value_inclusive' => true];
-        }
-        if ($single_value[0] == '=') {
-            return ['min_value' => floatval($single_value[1]), 'is_min_value_inclusive' => true,  'max_value' => floatval($single_value[1]), 'is_max_value_inclusive' => true];
-        }
-        $range_value = preg_match('/^([\[\)])?([\d\.,]+)?\s*(\-|\.\.\.)?\s*([\d\.,]+)?(\]|\))?$/', $range);
-        return [
-            'min_value' => (is_null($range_value[1]) ? null : floatval($range_value[1])),
-            'is_min_value_inclusive' => $range_value[0] == '[',
-            'max_value' => (is_null($range_value[3]) ? null : floatval($range_value[3])),
-            'is_max_value_inclusive' => $range_value[4] == ']'
-        ];
     }
 
     /**
@@ -197,18 +227,37 @@ class TestPlanController extends Controller
                     'test_plan_id' => $request->input('test_plan_id'),
                     'metric_id' => $request->input('new_metric_id'),
                     'sort_order' => $request->input('new_metric_sort_order'),
-                    'qualifier' => $request->input('new_metricqualifier'),                
+                    'qualifier' => $request->input('new_metric_qualifier'),                
                     'usage_code' => $request->input('new_metric_usage_code'),
+                    'unit' => $request->input('new_metric_unit'),
                     'is_nullable' => $request->input('new_metric_is_nullable') == 'on',
                     'min_value' => $criteria['min_value'],
-                    //'is_min_value_inclusive' => (bool) $criteria['is_min_value_inclusive'],
+                    'is_min_value_inclusive' => $criteria['is_min_value_inclusive'],
                     'max_value' =>  $criteria['max_value'],
-                    //'is_max_value_inclusive' => (bool) $criteria-['s_max_value_inclusive'],
+                    'is_max_value_inclusive' => $criteria['is_max_value_inclusive'],
                     'is_active' => $request->input('new_metric_is_active') == 'on'
                 ]);
-            return redirect('/test-plan/' + strval($id) + '/edit/');
+            return redirect()->action('TestPlanController@edit', ['id' => $id]);
         }
-        return redirect('/test-plans');
+        else if (!is_null($request->input('test_plan_metric_id_under_edit'))) {
+            $criteria = $this->parse_criteria($request->input('edited_metric_criteria'));
+            DB::table('test_plan_metric')
+                ->where('test_plan_metric_id', $request->input('test_plan_metric_id_under_edit'))
+                ->update([
+                    'sort_order' => $request->input('edited_metric_sort_order'),
+                    'qualifier' => $request->input('edited_metric_qualifier'),                
+                    'usage_code' => $request->input('edited_metric_usage_code'),
+                    'unit' => $request->input('edited_metric_unit'),
+                    'is_nullable' => $request->input('edited_metric_is_nullable') == 'on',
+                    'min_value' => $criteria['min_value'],
+                    'is_min_value_inclusive' => $criteria['is_min_value_inclusive'],
+                    'max_value' =>  $criteria['max_value'],
+                    'is_max_value_inclusive' => $criteria['is_max_value_inclusive'],
+                    'is_active' => $request->input('edited_metric_is_active') == 'on'
+                ]);
+            return redirect()->action('TestPlanController@edit', ['id' => $id]);
+        }
+        return redirect()->action('TestPlanController@index');
     }
 
     /**
