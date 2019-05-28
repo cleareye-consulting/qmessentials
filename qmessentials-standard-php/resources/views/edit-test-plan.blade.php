@@ -10,6 +10,7 @@
         <input type="hidden" id="test_plan_id" name="test_plan_id" value="{{$test_plan->test_plan_id}}"/>
         <input type="hidden" name="_method" value="PUT">
         <input type="hidden" name="test_plan_metric_id_under_edit" value="{{$test_plan_metric_id_under_edit}}"/>
+        <input type="hidden" name="is_active_original_value" id="is_active_original_value" value="{{$test_plan->is_active}}"/>
         <div class="form-group">
             <label class="control-label" for="test_plan_name">Name</label>
             <input class="form-control" type="text" id="test_plan_name" name="test_plan_name" placeholder="Name" value="{{$test_plan->test_plan_name}}" disabled/>
@@ -94,7 +95,7 @@
                     <td><input type="text" class="form-control" id="new_metric_sort_order" name="new_metric_sort_order"/></td>
                     <td>
                         <select class="form-control" id="new_metric_id" name="new_metric_id">
-                            <option>Select a metric...</option>
+                            <option value="0">Select a metric...</option>
                         @foreach ($metrics as $metric) 
                             <option value="{{$metric->metric_id}}">{{$metric->metric_name}}</option>
                         @endforeach
@@ -125,8 +126,8 @@
             </tbody>
         </table>
         <div class="form-group">
-            <button class="btn btn-primary">Save Changes</button>
-            <a class="btn btn-default" href="/test-plans">Cancel</a>
+            <button class="btn btn-primary" id="submitButton" disabled>Save Changes</button>
+            <a class="btn btn-default" href="/test-plans">Return to List</a>
         </div>
     </form>
     </div>
@@ -135,7 +136,6 @@
 @section('scripts')
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <script>
-        var availableQualfiiers = [];        
         $(() => {
             $('#new_metric_id').change(async () => {
                 $('#new_metric_qualifier').empty();
@@ -146,12 +146,14 @@
                     $('<option/>').val('').text('').appendTo($('#new_metric_qualifier'));
                     $.each(qualifiers, q => $('<option/>').val(qualifiers[q]).text(qualifiers[q]).appendTo($('#new_metric_qualifier')));
                     $('<option/>').val('').text('').appendTo($('#new_metric_unit'));
-                    $.each(units, u => $('<option/>').val(units[u]).text(units[u]).appendTo($('#new_metric_unit')));
-                    
+                    $.each(units, u => $('<option/>').val(units[u]).text(units[u]).appendTo($('#new_metric_unit')));                    
                 }
                 catch (error) {
                     console.error(error);
                 }
+            });
+            $('#is_active').click(() => {                
+                $('#submitButton').prop('disabled', $('#is_active').is('checked') === $('#is_active_original_value').val());
             });
         });
     </script>

@@ -59,17 +59,15 @@ class TestPlanController extends Controller
                         'test_plan_id' => $test_plan_id,
                         'metric_id' => $original_metric->metric_id,
                         'sort_order'=> $original_metric->sort_order,
+                        'unit' => $original_metric->unit,
+                        'usage_code' => $original_metric->usage_code,
                         'qualifier'=> $original_metric->qualifier,
-                        'is_for_each'=> $original_metric->is_for_each,
-                        'is_for_first'=> $original_metric->is_for_first,
-                        'is_for_last'=> $original_metric->is_for_last,
-                        'is_one_per_lot'=> $original_metric->is_one_per_lot,
-                        'frequency'=> $original_metric->frequency,
                         'is_nullable'=> $original_metric->is_nullable,
                         'min_value'=> $original_metric->min_value,
                         'is_min_value_inclusive'=> $original_metric->is_min_value_inclusive,
                         'max_value'=> $original_metric->max_value,
-                        'is_max_value_inclusive'=> $original_metric->is_max_value_inclusive
+                        'is_max_value_inclusive'=> $original_metric->is_max_value_inclusive,
+                        'is_active' => true
                     ]);
                 }
             });
@@ -160,42 +158,42 @@ class TestPlanController extends Controller
     }
 
     private function parse_criteria(string $range) {
-        if (preg_match('/^(>|>=|<=|<|=)?\s*([\d\.,])+$/', $range, $matches)) {
-            if ($matches[1] == '<') {
-                return ['min_value' => null, 'is_min_value_inclusive' => null,  'max_value' => floatval($matches[2]), 'is_max_value_inclusive' => false];
+        if (preg_match('/^(?<operator>>|>=|<=|<|=)?\s*(?<value>[\d\.,]+)$/', $range, $matches)) {
+            if ($matches['operator'] == '' || $matches['operator'] == '=') {
+                return ['min_value' => floatval($matches['value']), 'is_min_value_inclusive' => true,  'max_value' => floatval($matches['value']), 'is_max_value_inclusive' => true];
             }
-            if ($matches[1] == '<=') {
-                return ['min_value' => null, 'is_min_value_inclusive' => null,  'max_value' => floatval($matches[2]), 'is_max_value_inclusive' => true];
+            if ($matches['operator'] == '<') {
+                return ['min_value' => null, 'is_min_value_inclusive' => null,  'max_value' => floatval($matches['value']), 'is_max_value_inclusive' => false];
             }
-            if ($matches[1] == '>') {
-                return ['min_value' => floatval($matches[2]), 'is_min_value_inclusive' => false,  'max_value' => null, 'is_max_value_inclusive' => null];
+            if ($matches['operator'] == '<=') {
+                return ['min_value' => null, 'is_min_value_inclusive' => null,  'max_value' => floatval($matches['value']), 'is_max_value_inclusive' => true];
             }
-            if ($matches[1] == '>=') {
-                return ['min_value' => floatval($matches[2]), 'is_min_value_inclusive' => true,  'max_value' => null, 'is_max_value_inclusive' => null];
+            if ($matches['operator'] == '>') {
+                return ['min_value' => floatval($matches['value']), 'is_min_value_inclusive' => false,  'max_value' => null, 'is_max_value_inclusive' => null];
+            }
+            if ($matches['operator'] == '>=') {
+                return ['min_value' => floatval($matches['value']), 'is_min_value_inclusive' => true,  'max_value' => null, 'is_max_value_inclusive' => null];
             }        
-            if ($matches[1] == '=') {
-                return ['min_value' => floatval($matches[2]), 'is_min_value_inclusive' => true,  'max_value' => floatval($matches[2]), 'is_max_value_inclusive' => true];
-            }
         }
-        else if (preg_match('/^([\[\)])?([\d\.,]+)?\s*(\-|\.\.\.)?\s*([\d\.,]+)?(\]|\))?$/', $range, $matches)) {
+        else if (preg_match('/^(?<opener>[\[\(])?(?<min>[\d\.,]+)?\s*(?:-|(?:\.\.\.?))\s*(?<max>[\d\.,]+)?(?<closer>\]|\))?$/', $range, $matches)) {
             return [
-                'min_value' => (is_null($matches[2]) ? null : floatval($matches[2])),
-                'is_min_value_inclusive' => $matches[1] == '[',
-                'max_value' => (is_null($matches[4]) ? null : floatval($matches[4])),
-                'is_max_value_inclusive' => $matches[5] == ']'
+                'min_value' => (is_null($matches['min']) ? null : floatval($matches['min'])),
+                'is_min_value_inclusive' => $matches['opener'] != '(',
+                'max_value' => (is_null($matches['max']) ? null : floatval($matches['max'])),
+                'is_max_value_inclusive' => array_key_exists('closer',$matches) ? $matches['closer'] != ')' : true
             ];
         }
         return ['min_value' => null, 'is_min_value_inclusive' => null,  'max_value' => null, 'is_max_value_inclusive' => null];
     }
 
-    private function reconstruct_criteria(float $min_value, bool $is_min_value_inclusive, float $max_value, float $is_max_value_exclusive) {
-        if (!is_null($min_value)) {
-            if (!is_null($max_value)) {
+    private function reconstruct_criteria($min_value, $is_min_value_inclusive, $max_value, $is_max_value_inclusive) {
+        if ($min_value != '') {
+            if ($max_value != '') {
                 if ($min_value == $max_value) {
                     return $min_value;
                 }
                 else {
-                    return ($is_min_value_inclusive ? '[' : '(') . $min_value . '..' . $max_value . ($is_max_value_exclusive ? ']' : ')');
+                    return ($is_min_value_inclusive ? '[' : '(') . $min_value . '..' . $max_value . ($is_max_value_inclusive ? ']' : ')');
                 }
             }            
             else {
@@ -203,7 +201,7 @@ class TestPlanController extends Controller
             }
         }
         else {
-            if (!is_null($max_value)) {
+            if ($max_value != '') {
                 return '<' . ($is_max_value_inclusive ? '=' : '') . $max_value;
             }
         }
@@ -219,8 +217,8 @@ class TestPlanController extends Controller
      */
     public function update(Request $request, $id)
     {
-        DB::table('test_plan')->where('test_plan_id', $request->input('test_plan_id'))->update(['is_active' => ($request->input('is_active') == 'on')]);
-        if (!is_null($request->input('new_metric_id'))) {            
+        DB::table('test_plan')->where('test_plan_id', $request->input('test_plan_id'))->update(['is_active' => ($request->input('is_active') == 'on')]);        
+        if ($request->input('new_metric_id') != 0) {            
             $criteria = $this->parse_criteria($request->input('new_metric_criteria'));
             DB::table('test_plan_metric')
                 ->insert([
@@ -239,7 +237,7 @@ class TestPlanController extends Controller
                 ]);
             return redirect()->action('TestPlanController@edit', ['id' => $id]);
         }
-        else if (!is_null($request->input('test_plan_metric_id_under_edit'))) {
+        else if ($request->input('test_plan_metric_id_under_edit') != '') {
             $criteria = $this->parse_criteria($request->input('edited_metric_criteria'));
             DB::table('test_plan_metric')
                 ->where('test_plan_metric_id', $request->input('test_plan_metric_id_under_edit'))
