@@ -208,6 +208,17 @@ class TestPlanController extends Controller
         return '';
     }
 
+    private function renumber_test_plan_metrics($test_plan_id, $new_number, $new_number_holder) {
+        $number_holder_count = 
+            DB::table('test_plan_metric')->where([['test_plan_id', $test_plan_id],['sort_order', $new_number]])->count();
+        if ($number_holder_count == 1) {            
+            return; //no need to do anything because number was already vacant
+        }
+        DB::table('test_plan_metric')
+            ->where([['test_plan_id', $test_plan_id],['sort_order', '>=' , $new_number],['test_plan_metric_id', '!=', $new_number_holder]])
+            ->update(['sort_order' => DB::raw('sort_order + 1')]);
+    }
+
     /**
      * Update the specified resource in storage.
      *
@@ -219,9 +230,9 @@ class TestPlanController extends Controller
     {
         DB::table('test_plan')->where('test_plan_id', $request->input('test_plan_id'))->update(['is_active' => ($request->input('is_active') == 'on')]);        
         if ($request->input('new_metric_id') != 0) {            
-            $criteria = $this->parse_criteria($request->input('new_metric_criteria'));
-            DB::table('test_plan_metric')
-                ->insert([
+            $criteria = $this->parse_criteria($request->input('new_metric_criteria') ?? 'Any');
+            $new_test_plan_metric_id = DB::table('test_plan_metric')
+                ->insertGetId([
                     'test_plan_id' => $request->input('test_plan_id'),
                     'metric_id' => $request->input('new_metric_id'),
                     'sort_order' => $request->input('new_metric_sort_order'),
@@ -235,10 +246,11 @@ class TestPlanController extends Controller
                     'is_max_value_inclusive' => $criteria['is_max_value_inclusive'],
                     'is_active' => $request->input('new_metric_is_active') == 'on'
                 ]);
+            $this->renumber_test_plan_metrics($request->input('test_plan_id'), $request->input('new_metric_sort_order'), $new_test_plan_metric_id);
             return redirect()->action('TestPlanController@edit', ['id' => $id]);
         }
         else if ($request->input('test_plan_metric_id_under_edit') != '') {
-            $criteria = $this->parse_criteria($request->input('edited_metric_criteria'));
+            $criteria = $this->parse_criteria($request->input('edited_metric_criteria') ?? 'Any');
             DB::table('test_plan_metric')
                 ->where('test_plan_metric_id', $request->input('test_plan_metric_id_under_edit'))
                 ->update([
@@ -253,6 +265,7 @@ class TestPlanController extends Controller
                     'is_max_value_inclusive' => $criteria['is_max_value_inclusive'],
                     'is_active' => $request->input('edited_metric_is_active') == 'on'
                 ]);
+            $this->renumber_test_plan_metrics($request->input('test_plan_id'), $request->input('edited_metric_sort_order'), $request->input('test_plan_metric_id_under_edit'));
             return redirect()->action('TestPlanController@edit', ['id' => $id]);
         }
         return redirect()->action('TestPlanController@index');

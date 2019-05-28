@@ -26,11 +26,11 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th width="5%">Order</th>
+                    <th width="10%">Order</th>
                     <th width="18%">Metric Name</th>
                     <th width="16%">Qualifier</th>                    
                     <th width="15%">Usage</th>
-                    <th width="16%">Criteria</th>
+                    <th width="11%">Criteria</th>
                     <th width="16">Units</th>
                     <th width="5%">Nullable</th>                    
                     <th width="4%">Active</th>
@@ -146,15 +146,20 @@
                     $('<option/>').val('').text('').appendTo($('#new_metric_qualifier'));
                     $.each(qualifiers, q => $('<option/>').val(qualifiers[q]).text(qualifiers[q]).appendTo($('#new_metric_qualifier')));
                     $('<option/>').val('').text('').appendTo($('#new_metric_unit'));
-                    $.each(units, u => $('<option/>').val(units[u]).text(units[u]).appendTo($('#new_metric_unit')));                    
+                    $.each(units, u => $('<option/>').val(units[u]).text(units[u]).appendTo($('#new_metric_unit')));                                        
                 }
                 catch (error) {
                     console.error(error);
                 }
+                if (!($('#new_metric_sort_order').val())) {
+                    const existingValues = $.map($('td[data-fieldname="sort_order"]'), td => $(td).html());
+                    const newValue = existingValues.length === 0 ? 1 : Math.max(...existingValues) + 1;
+                    $('#new_metric_sort_order').val(newValue);
+                }
             });
             $('#is_active').click(() => {                
                 $('#submitButton').prop('disabled', $('#is_active').is('checked') === $('#is_active_original_value').val());
-            });
+            });            
         });
     </script>
 @endsection
