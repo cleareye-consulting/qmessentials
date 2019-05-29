@@ -83,3 +83,20 @@ create table test_plan_metric (
 );
 
 create unique index ix_test_plan_metric_alternate_key on test_plan_metric (test_plan_id, metric_id);
+
+create table product (
+	product_id int auto_increment primary key,
+    product_name varchar (500) not null,
+    is_active bit not null
+);
+
+
+create table product_test_plan (
+	product_id int not null,
+    test_plan_id int not null,
+    sort_order int not null,
+    is_required bit not null,
+    constraint pk_product_test_plan primary key (product_id, test_plan_id),
+    constraint fk_product_test_plan_product foreign key (product_id) references product (product_id),
+    constraint fk_product_test_plan_test_plan foreign key (test_plan_id) references test_plan (test_plan_id)
+);

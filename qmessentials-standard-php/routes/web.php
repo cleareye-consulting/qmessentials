@@ -20,13 +20,14 @@ Route::get('/home', 'HomeController@index')->name('home')->middleware('auth');
 Auth::routes();
 
 Route::resources([
-    'metrics' => 'MetricController',
-    'products' => 'ProductController'
+    'metrics' => 'MetricController'
 ]);
 
 Route::resource('test-plans','TestPlanController')->except('edit');
 Route::get('/test-plans/{id}/edit/{test_plan_metric_id_under_edit?}', 'TestPlanController@edit');
 
+Route::resource('products','ProductController')->except('edit');
+Route::get('/products/{id}/edit/{product_test_plan_id_under_edit?}', 'ProductController@edit');
 
 Route::get('/api/available-qualifiers/{metric_id}', 'MetricController@getAvailableQualifiers');
 Route::get('/api/available-units/{metric_id}', 'MetricController@getAvailableUnits');
