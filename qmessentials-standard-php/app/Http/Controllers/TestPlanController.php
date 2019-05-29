@@ -21,7 +21,7 @@ class TestPlanController extends Controller
     public function index()
     {
         $test_plans = DB::table('test_plan')->where('is_active',true)->get();
-        return view('test-plans', ['test_plans' => $test_plans]);
+        return view('test-plans/test-plans', ['test_plans' => $test_plans]);
     }
 
     /**
@@ -32,7 +32,7 @@ class TestPlanController extends Controller
     public function create()
     {
         return view(
-            'create-test-plan', 
+            'test-plans/create-test-plan', 
             ['existing_test_plans'=>DB::table('test_plan')->where('is_active',true)->select('test_plan_id','test_plan_name')->get()]
         );
     }
@@ -145,7 +145,7 @@ class TestPlanController extends Controller
                 },
                 DB::table('metric_available_unit')->select('unit')->where('metric_id', $metric_id)->orderBy('sort_order')->get()->toArray());
         }
-        return view('edit-test-plan', 
+        return view('test-plans/edit-test-plan', 
             [
                 'test_plan' => $test_plan, 
                 'test_plan_metrics' => $test_plan_metrics,

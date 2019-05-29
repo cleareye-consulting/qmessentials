@@ -20,7 +20,7 @@ class MetricController extends Controller
     public function index()
     {
         $metrics = DB::table('metric')->get();
-        return view('metrics', ['metrics' => $metrics]);
+        return view('metrics/metrics', ['metrics' => $metrics]);
     }
 
     /**
@@ -30,7 +30,7 @@ class MetricController extends Controller
      */
     public function create()
     {        
-        return view('create-metric');
+        return view('metrics/create-metric');
     }
 
     /**
@@ -169,7 +169,7 @@ class MetricController extends Controller
             'methodology_references' => $methodologyReferences,
             'is_active' => $metric->is_active
         ];
-        return view('edit-metric', ['metric' => (object)$model]);
+        return view('metrics/edit-metric', ['metric' => (object)$model]);
     }
 
     /**
