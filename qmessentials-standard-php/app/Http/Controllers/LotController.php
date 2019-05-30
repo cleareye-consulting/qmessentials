@@ -74,7 +74,11 @@ class LotController extends Controller
             ->select('lot_id','lot_number','product_id','customer_name','created_date')
             ->first();
         $products = DB::table('product')->get();
-        return view('lots/edit-lot', ['lot' => $lot, 'products' => $products]);
+        $items = DB::table('item')
+            ->where('lot_id', $id)
+            ->select('item_number', 'created_date')
+            ->get();
+        return view('lots/edit-lot', ['lot' => $lot, 'products' => $products, 'items' => $items]);
     }
 
     /**
@@ -92,6 +96,15 @@ class LotController extends Controller
                 'product_id' => $request->input('product_id'),
                 'customer_name' => $request->input('customer_name')
             ]);
+        if (!is_null($request->input('new_item_number'))) {
+            DB::table('item')
+                ->insert([
+                    'item_number' => $request->input('new_item_number'),
+                    'lot_id' => $id,
+                    'created_date' => date('Y-m-d H:i:s')
+                ]);
+            return redirect()->action('LotController@edit', ['id' => $id]);
+        }
         return redirect()->action('LotController@index');
     }
 

@@ -26,9 +26,29 @@
             <label class="control-label" for="customer_name">Customer</label>
             <input class="form-control" type="text" id="customer_name" name="customer_name" value="{{$lot->customer_name}}"/>
         </div>        
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item Number</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach ($items as $item)
+                <tr>
+                    <td>{{$item->item_number}}</td>
+                    <td>{{$item->created_date}}</td>
+                </tr>
+            @endforeach
+                <tr>
+                    <td><input class="form-control" type="text" id="new_item_number" name="new_item_number" placeholder="Item #" /></td>
+                    <td><button class="btn btn-small btn-default">Add Item</button></td>
+                </tr>
+            </tbody>
+        </table>
         <div class="form-group">
             <button class="btn btn-primary">Save Changes</button>
-            <a class="btn btn-default" href="/lots">Cancel</a>
+            <a class="btn btn-default" href="/lots">Return to List</a>
         </div>
     </form>
     </div>
