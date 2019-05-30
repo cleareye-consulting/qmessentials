@@ -21,7 +21,8 @@ Auth::routes();
 
 Route::resources([
     'metrics' => 'MetricController',
-    'lots' => 'LotController'
+    'lots' => 'LotController',
+    'test-runs' => 'TestRunController'
 ]);
 
 Route::resource('test-plans','TestPlanController')->except('edit');
@@ -32,3 +33,5 @@ Route::get('/products/{id}/edit/{product_test_plan_id_under_edit?}', 'ProductCon
 
 Route::get('/api/available-qualifiers/{metric_id}', 'MetricController@getAvailableQualifiers');
 Route::get('/api/available-units/{metric_id}', 'MetricController@getAvailableUnits');
+Route::get('/api/items-for-lot/{lot_id}', 'TestRunController@getItemsForLot');
+Route::get('/api/test-plans-for-item/{item_id}', 'TestRunController@getTestPlansForItem');

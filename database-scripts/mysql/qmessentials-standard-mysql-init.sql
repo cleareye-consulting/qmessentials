@@ -109,4 +109,45 @@ create table lot (
     customer_name varchar (500) null,
     created_date datetime not null,
     constraint fk_lot_product foreign key (product_id) references product (product_id)
-)
+);
+
+create table item (
+	item_id int auto_increment primary key,
+    item_number varchar (500) not null,
+    lot_id int not null,
+    created_date datetime not null,
+    constraint fk_item_lot foreign key (lot_id) references lot (lot_id)
+);
+
+create unique index ix_item_number_alternate_key on item (lot_id, item_number);
+
+create table test_run (
+	test_run_id int auto_increment primary key,
+    item_id int not null,
+    test_plan_id int not null,
+    created_date datetime not null,
+    constraint fk_test_run_item foreign key (item_id) references item (item_id),
+    constraint fk_test_run_test_plan foreign key (test_plan_id) references test_plan (test_plan_id)
+);
+
+create table observation (
+	observation_id int auto_increment primary key,
+    test_run_id int not null,
+    test_plan_metric_id int not null,
+    created_date datetime not null,
+    min_value float null,
+    is_min_value_inclusive bit null,
+    max_value float null,
+    is_max_value_inclusive bit null,
+    is_nullable bit not null,
+    constraint fk_observation_test_run foreign key (test_run_id) references test_run (test_run_id),
+    constraint fk_observation_test_plan_metric foreign key (test_plan_metric_id) references test_plan_metric (test_plan_metric_id)    
+);
+
+create table observation_result (
+	observation_result_id int auto_increment primary key,
+    observation_id int not null,
+    result_value float null,
+    constraint observation_result_observation foreign key (observation_id) references observation (observation_id)
+);
+

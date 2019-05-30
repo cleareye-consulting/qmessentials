@@ -9,6 +9,7 @@
             <li><a href="test-plans">Test Plans</a></li>
             <li><a href="products">Products</a></li>
             <li><a href="lots">Lots</a></li>
+            <li><a href="test-runs">Test Runs</a></li>
         </ul>
     </div>
 @endsection
