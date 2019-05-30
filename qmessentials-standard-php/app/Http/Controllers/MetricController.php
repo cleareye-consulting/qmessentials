@@ -94,7 +94,7 @@ class MetricController extends Controller
                 }, 
                 preg_split('/[\n]+/', $request->input('methodology_references'), -1, PREG_SPLIT_NO_EMPTY));
         DB::table('metric_methodology_reference')->insert($methodologyReferences);
-        return redirect('/metrics');
+        return redirect()->action('MetricController@index');
     }
 
     /**
@@ -236,7 +236,7 @@ class MetricController extends Controller
                 }, 
                 preg_split('/[\n]+/', $request->input('methodology_references'), -1, PREG_SPLIT_NO_EMPTY));
         DB::table('metric_methodology_reference')->insert($methodologyReferences);
-        return redirect('/metrics');
+        return redirect()->action('MetricController@index');
     }
 
     /**

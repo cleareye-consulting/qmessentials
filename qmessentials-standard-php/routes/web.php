@@ -20,7 +20,8 @@ Route::get('/home', 'HomeController@index')->name('home')->middleware('auth');
 Auth::routes();
 
 Route::resources([
-    'metrics' => 'MetricController'
+    'metrics' => 'MetricController',
+    'lots' => 'LotController'
 ]);
 
 Route::resource('test-plans','TestPlanController')->except('edit');

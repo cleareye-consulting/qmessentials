@@ -90,13 +90,23 @@ create table product (
     is_active bit not null
 );
 
-
 create table product_test_plan (
+	product_test_plan_id int auto_increment primary key,
 	product_id int not null,
+    test_plan_sequence_number int not null,
     test_plan_id int not null,
-    sort_order int not null,
     is_required bit not null,
-    constraint pk_product_test_plan primary key (product_id, test_plan_id),
     constraint fk_product_test_plan_product foreign key (product_id) references product (product_id),
     constraint fk_product_test_plan_test_plan foreign key (test_plan_id) references test_plan (test_plan_id)
 );
+
+create unique index ix_product_test_plan_alternate_key on product_test_plan (product_id, test_plan_sequence_number);
+
+create table lot (
+	lot_id int auto_increment primary key,
+    lot_number varchar (100) not null,
+    product_id int not null,
+    customer_name varchar (500) null,
+    created_date datetime not null,
+    constraint fk_lot_product foreign key (product_id) references product (product_id)
+)
