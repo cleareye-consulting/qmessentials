@@ -23,7 +23,7 @@ class UserController extends Controller
             function($item) {
                 return (object) [
                     'id' => $item->id,
-                    'username' => $item->username,
+                    'name' => $item->name,
                     'roles' => []
                 ];
             },
@@ -36,7 +36,7 @@ class UserController extends Controller
             ->get();
         foreach ($user_roles as $user_role) {
             foreach ($users as $user) {
-                if ($user->user_id == $user_role->user_id) {
+                if ($user->id == $user_role->user_id) {
                     array_push($user->roles, $user_role->role_name);
                 }
             }
@@ -64,7 +64,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $user = User::create([
-            'name' => $request->input('username'),
+            'name' => $request->input('name'),
             'password' => Hash::make($request->input('initial_password'))            
         ]);
         foreach ($request->input('roles') as $role_id) {
@@ -74,6 +74,7 @@ class UserController extends Controller
                     'role_id' => $role_id
                 ]);    
         }
+        return redirect()->action('UserController@index');
     }
 
     /**
@@ -95,7 +96,15 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        //
+        $user = DB::table('users')->where('id', $id)->first();
+        $user_roles = 
+            DB::table('user_role')
+            ->join('role','role.role_id','=','user_role.role_id')
+            ->where('user_role.user_id', $id)
+            ->pluck('role.role_id')
+            ->toArray();
+        $roles = DB::table('role')->get();
+        return view('users/edit-user', ['user' => $user, 'user_roles' => $user_roles, 'roles' => $roles]);
     }
 
     /**
@@ -107,7 +116,27 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        DB::transaction(function() use ($request, $id) {
+            if ($request->input('updated_password') != '') {
+                Log::warn('Updating password for user ' . $id);
+                DB::table('users')
+                    ->where('id', $id)
+                    ->update(['password' => Hash::make($request->input('initial_password'))]);                
+            }
+            $old_role_ids = DB::table('user_role')->where('user_id', $id)->pluck('role_id')->toArray();
+            DB::table('user_role')
+                ->where('user_id', $id)
+                ->whereIn('role_id', $old_role_ids)
+                ->delete();
+            foreach ($request->input('roles') as $role_id) {
+                DB::table('user_role')
+                    ->insert([
+                        'user_id' => $id,
+                        'role_id' => $role_id
+                    ]);
+            }
+        });
+        return redirect()->action('UserController@index');
     }
 
     /**

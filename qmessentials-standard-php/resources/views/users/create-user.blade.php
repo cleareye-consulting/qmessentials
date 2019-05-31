@@ -24,8 +24,8 @@ function getRandomPassword() {
     <form class="form" action="/users" method="POST">
         {{csrf_field()}}
         <div class="form-group">
-            <label class="control-label" for="username">User Name</label>
-            <input class="form-control" type="text" id="username" name="username"/>
+            <label class="control-label" for="name">User Name</label>
+            <input class="form-control" type="text" id="name" name="name"/>
         </div>      
         <div class="form-group">
             <label class="control-label" for="initial_password">Initial Password</label>

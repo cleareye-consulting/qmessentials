@@ -15,8 +15,8 @@
             <tbody>
             @foreach($users as $user) 
                 <tr>
-                    <td><a href="/users/{{$user->id}}/edit">{{$user->username}}</a></td>
-                    <th>{{implode(' ', $user->roles)}}</th>
+                    <td><a href="/users/{{$user->id}}/edit">{{$user->name}}</a></td>
+                    <td>{{implode(', ', $user->roles)}}</td>
                 </tr>
             @endforeach
             </tbody>
