@@ -19,12 +19,10 @@ Route::get('/home', 'HomeController@index')->name('home')->middleware('auth');
 
 Auth::routes();
 
-Route::resources([
-    'metrics' => 'MetricController',
-    'lots' => 'LotController',
-    'test-runs' => 'TestRunController',
-    'users' => 'UserController'
-]);
+Route::resource('metrics', 'MetricController');
+Route::resource('lots', 'LotController');
+Route::resource('test-runs', 'TestRunController');
+Route::resource('users', 'UserController');
 
 Route::resource('test-plans','TestPlanController')->except('edit');
 Route::get('/test-plans/{id}/edit/{test_plan_metric_id_under_edit?}', 'TestPlanController@edit');

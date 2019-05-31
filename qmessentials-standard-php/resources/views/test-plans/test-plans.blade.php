@@ -4,7 +4,8 @@
 
 @section('content')
     <div class="container">
-        <h2 class="subtitle">Test Plans</h2>  
+        <h2 class="subtitle">Test Plans</h2>
+        @can('write-test-plan')  
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -22,5 +23,9 @@
         <div>
             <a href="/test-plans/create">Add a Test Plan</a>
         </div>
+        @endcan
+        @cannot('write-test-plan')
+        <p class="lead">You must be in role 'Analyst' to view or edit test plans.</p>
+        @endcannot
     </div>
 @endsection

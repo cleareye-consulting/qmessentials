@@ -5,6 +5,7 @@
 @section('content')
     <div class="container">
         <h2 class="subtitle">Results by Lot</h2>  
+        @can('read-aggregate-data')
         <form>
             <div class="form-group">
                 <select class="form-control" name="lot_id" id="lot_id">
@@ -43,7 +44,12 @@
             </tbody>
         </table>
         @endif
+        @endcan
+        @cannot('read-aggregate-data')
+        <p class="lead">You must be in role 'Quality Manager' to view reports.</p>
+        @endcannot
     </div>
+    
 @endsection
 
 @section('scripts')

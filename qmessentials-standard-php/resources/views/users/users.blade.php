@@ -5,6 +5,7 @@
 @section('content')
     <div class="container">
         <h2 class="subtitle">Users</h2>  
+        @can('write-user')
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -24,5 +25,9 @@
         <div>
             <a href="/users/create">Add a User</a>
         </div>
+        @endcan
+        @cannot('write-user')
+        <p class="lead">You must be in role 'Administrator' to view or edit users.</p>
+        @endcannot
     </div>
 @endsection

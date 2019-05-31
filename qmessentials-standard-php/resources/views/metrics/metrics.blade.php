@@ -5,6 +5,7 @@
 @section('content')
     <div class="container">
         <h2 class="subtitle">Metrics</h2>  
+        @can('write-metric')
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -22,5 +23,9 @@
         <div>
             <a href="/metrics/create">Add a Metric</a>
         </div>
+        @endcan
+        @cannot('write-metric')
+        <p class="lead">You must be in role 'Analyst' to view or edit metrics.</p>
+        @endcannot
     </div>
 @endsection

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class ProductController extends Controller
 {
@@ -30,6 +31,9 @@ class ProductController extends Controller
      */
     public function create()
     {
+        if (Gate::denies('write-product')) {
+            return redirect()->action('ProductController@index');
+        }
         return view('products/create-product');
     }
 
@@ -41,6 +45,9 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        if (Gate::denies('write-product')) {
+            return redirect()->action('ProductController@index');
+        }
         DB::table('product')->insert([
             'product_name' => $request->input('product_name'),
             'is_active' => true
@@ -67,6 +74,9 @@ class ProductController extends Controller
      */
     public function edit($id, $product_test_plan_id_under_edit = NULL)
     {
+        if (Gate::denies('write-product')) {
+            return redirect()->action('ProductController@index');
+        }
         $product = DB::table('product')->where('product_id', $id)->select('product_id', 'product_name', 'is_active')->first();
         $product_test_plans = 
             DB::table('product_test_plan')
@@ -96,6 +106,9 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (Gate::denies('write-product')) {
+            return redirect()->action('ProductController@index');
+        }
         DB::table('product')
             ->where('product_id', $id)
             ->update(['is_active' => $request->input('is_active') == 'on']);        

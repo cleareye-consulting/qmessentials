@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 class TestRunController extends Controller
@@ -58,6 +59,9 @@ class TestRunController extends Controller
      */
     public function create()
     {
+        if (Gate::denies('write-observation')) {
+            return redirect()->action('TestRunController@index');
+        }
         $lots = DB::table('lot')->get();
         return view('test-runs/create-test-run', ['lots' => $lots]);
     }
@@ -104,6 +108,9 @@ class TestRunController extends Controller
      */
     public function store(Request $request)
     {
+        if (Gate::denies('write-observation')) {
+            return redirect()->action('TestRunController@index');
+        }
         $item_id = $request->input('item_id');
         $test_plan_id = $request->input('test_plan_id');
         $item = DB::table('item')
@@ -192,6 +199,9 @@ class TestRunController extends Controller
      */
     public function edit($id)
     {
+        if (Gate::denies('write-observation')) {
+            return redirect()->action('TestRunController@index');
+        }
         $test_run = 
             DB::table('test_run')
             ->join('item', 'item.item_id', '=', 'test_run.item_id')
@@ -253,6 +263,9 @@ class TestRunController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (Gate::denies('write-observation')) {
+            return redirect()->action('TestRunController@index');
+        }
         $observation_ids = 
             DB::table('observation')
             ->where('test_run_id', $id)

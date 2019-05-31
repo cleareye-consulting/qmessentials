@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class MetricController extends Controller
 {
@@ -30,6 +31,9 @@ class MetricController extends Controller
      */
     public function create()
     {        
+        if (Gate::denies('write-metric')) {
+            return redirect()->action('MetricController@index');
+        }
         return view('metrics/create-metric');
     }
 
@@ -40,7 +44,10 @@ class MetricController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {        
+    {    
+        if (Gate::denies('write-metric')) {
+            return redirect()->action('MetricController@index');
+        }    
         $metric_id = DB::table('metric')->insertGetId([
             'metric_name' => $request->input('metric_name'), 
             'is_active' => true,
@@ -134,6 +141,9 @@ class MetricController extends Controller
      */
     public function edit($id)
     {
+        if (Gate::denies('write-metric')) {
+            return redirect()->action('MetricController@index');
+        }    
         $metric = DB::table('metric')->where('metric_id', $id)->first();
         $availableQualifiers = array_map(
             function($item) {
@@ -181,6 +191,9 @@ class MetricController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (Gate::denies('write-metric')) {
+            return redirect()->action('MetricController@index');
+        }    
         DB::table('metric')
             ->where('metric_id', $id)
             ->update(['has_multiple_results' => $request->input('has_multiple_results') == 'on']);

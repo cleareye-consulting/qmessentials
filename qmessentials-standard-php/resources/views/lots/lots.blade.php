@@ -5,6 +5,7 @@
 @section('content')
     <div class="container">
         <h2 class="subtitle">Lots</h2>  
+        @can('write-lot')
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -28,5 +29,9 @@
         <div>
             <a href="/lots/create">Add a Lot</a>
         </div>
+        @endcan
+        @cannot('write-lot')
+        <p class="lead">You must be in role 'Lead Person' to view or edit lots and items.</p>
+        @endcannot
     </div>
 @endsection

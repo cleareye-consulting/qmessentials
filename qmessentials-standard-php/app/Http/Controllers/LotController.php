@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class LotController extends Controller
 {
@@ -34,6 +35,9 @@ class LotController extends Controller
      */
     public function create()
     {
+        if (Gate::denies('write-lot')) {
+            return redirect()->action('LotController@index');
+        }
         $products = DB::table('product')->get();
         return view('lots/create-lot', ['products'=>$products]);
     }
@@ -46,6 +50,9 @@ class LotController extends Controller
      */
     public function store(Request $request)
     {
+        if (Gate::denies('write-lot')) {
+            return redirect()->action('LotController@index');
+        }
         DB::table('lot')
             ->insert([
                 'lot_number' => $request->input('lot_number'),
@@ -75,6 +82,9 @@ class LotController extends Controller
      */
     public function edit($id)
     {
+        if (Gate::denies('write-lot')) {
+            return redirect()->action('LotController@index');
+        }
         $lot = DB::table('lot')
             ->where('lot_id', $id)
             ->select('lot_id','lot_number','product_id','customer_name','created_date')
@@ -96,6 +106,9 @@ class LotController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (Gate::denies('write-lot')) {
+            return redirect()->action('LotController@index');
+        }
         DB::table('lot')
             ->where('lot_id', $id)
             ->update([

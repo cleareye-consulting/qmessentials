@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 class TestPlanController extends Controller
@@ -31,6 +32,9 @@ class TestPlanController extends Controller
      */
     public function create()
     {
+        if (Gate::denies('write-test-plan')) {
+            return redirect()->action('TestPlanController@index');
+        }
         return view(
             'test-plans/create-test-plan', 
             ['existing_test_plans'=>DB::table('test_plan')->where('is_active',true)->select('test_plan_id','test_plan_name')->get()]
@@ -45,6 +49,9 @@ class TestPlanController extends Controller
      */
     public function store(Request $request)
     {
+        if (Gate::denies('write-test-plan')) {
+            return redirect()->action('TestPlanController@index');
+        }
         $test_plan_name = $request->input('test_plan_name');
         $duplicate_of_plan_id = $request->input('duplicate_of_plan_id');
         if (!is_null($duplicate_of_plan_id)) {
@@ -100,6 +107,9 @@ class TestPlanController extends Controller
      */
     public function edit($id, $test_plan_metric_id_under_edit = NULL)
     {
+        if (Gate::denies('write-test-plan')) {
+            return redirect()->action('TestPlanController@index');
+        }
         $test_plan = DB::table('test_plan')->where('test_plan_id', $id)->first();
         $test_plan_metrics = 
         array_map(            
@@ -228,6 +238,9 @@ class TestPlanController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (Gate::denies('write-test-plan')) {
+            return redirect()->action('TestPlanController@index');
+        }
         DB::table('test_plan')->where('test_plan_id', $request->input('test_plan_id'))->update(['is_active' => ($request->input('is_active') == 'on')]);        
         if ($request->input('new_metric_id') != 0) {            
             $criteria = $this->parse_criteria($request->input('new_metric_criteria') ?? 'Any');

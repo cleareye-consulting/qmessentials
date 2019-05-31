@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Auth\RegistersUsers;
 
 
@@ -56,6 +57,9 @@ class UserController extends Controller
      */
     public function create()
     {
+        if (Gate::denies('write-user')) {
+            return redirect()->action('UserController@index');
+        }
         $roles = DB::table('role')->get();
         return view('users/create-user', ['roles' => $roles]);
     }
@@ -68,6 +72,9 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        if (Gate::denies('write-user')) {
+            return redirect()->action('UserController@index');
+        }
         $user = User::create([
             'name' => $request->input('name'),
             'password' => Hash::make($request->input('initial_password'))            
@@ -101,6 +108,9 @@ class UserController extends Controller
      */
     public function edit($id)
     {
+        if (Gate::denies('write-user')) {
+            return redirect()->action('UserController@index');
+        }
         $user = DB::table('users')->where('id', $id)->first();
         $user_roles = 
             DB::table('user_role')
@@ -121,6 +131,9 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (Gate::denies('write-user')) {
+            return redirect()->action('UserController@index');
+        }
         DB::transaction(function() use ($request, $id) {
             if ($request->input('updated_password') != '') {
                 Log::warn('Updating password for user ' . $id);

@@ -5,6 +5,7 @@
 @section('content')
     <div class="container">
         <h2 class="subtitle">Test Runs</h2>  
+        @can('write-observation')
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -30,7 +31,11 @@
             </tbody>
         </table>
         <div>
-            <a href="/test-runs/create">Start a Test Run</a>
+            <a href="/test-runs/create">Create a Test Run</a>
         </div>
+        @endcan
+        @cannot('write-observation')
+        <p class="lead">You must be in role 'Technician' to view or edit test runs and observations.</p>
+        @endcannot
     </div>
 @endsection

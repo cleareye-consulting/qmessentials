@@ -5,6 +5,7 @@
 @section('content')
     <div class="container">
         <h2 class="subtitle">Products</h2>  
+        @can('write-products')
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -22,5 +23,9 @@
         <div>
             <a href="/products/create">Add a Product</a>
         </div>
+        @endcan
+        @cannot('write-products')
+        <p class="lead">You must be in role 'Analyst' to view or edit products.</p>
+        @endcannot
     </div>
 @endsection
