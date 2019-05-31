@@ -36,3 +36,5 @@ Route::get('/api/available-qualifiers/{metric_id}', 'MetricController@getAvailab
 Route::get('/api/available-units/{metric_id}', 'MetricController@getAvailableUnits');
 Route::get('/api/items-for-lot/{lot_id}', 'TestRunController@getItemsForLot');
 Route::get('/api/test-plans-for-item/{item_id}', 'TestRunController@getTestPlansForItem');
+
+Route::get('/reports/results-by-lot/{lot_id?}', 'ReportController@resultsByLot');

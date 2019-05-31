@@ -22,7 +22,7 @@
                 @foreach ($observations as $observation)
                 <tr>
                     <td>{{$observation->metric_name}}{{!($observation->is_nullable) ? '*' : ''}}</td>
-                    <td class="observation-criteria">{{$observation->criteria}}</td>
+                    <td class="observation-criteria">{{$observation->criteria}} {{$observation->unit}}</td>
                     <td 
                         data-min-value="{{$observation->min_value}}" 
                         data-is-min-value-inclusive="{{$observation->is_min_value_inclusive ? 'true' : 'false'}}"
