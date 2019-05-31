@@ -15,6 +15,7 @@
                 </select>
             </div>
         </form>
+        @if(!is_null($lot_id))
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -41,6 +42,7 @@
                 @endforeach
             </tbody>
         </table>
+        @endif
     </div>
 @endsection
 

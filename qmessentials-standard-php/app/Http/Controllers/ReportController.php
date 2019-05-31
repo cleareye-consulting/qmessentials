@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Log;
 class ReportController extends Controller
 {
 
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     //TODO: definitely move this to a utility method, because it's duplicated from TestPlanController and TestRunController
     private function reconstruct_criteria($min_value, $is_min_value_inclusive, $max_value, $is_max_value_inclusive) {
         if ($min_value != '') {
