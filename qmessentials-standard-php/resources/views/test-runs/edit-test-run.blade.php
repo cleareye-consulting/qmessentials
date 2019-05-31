@@ -29,9 +29,9 @@
                         data-max-value="{{$observation->max_value}}"
                         data-is-max-value-inclusive="{{$observation->is_max_value_inclusive ? 'true' : 'false'}}">
                     @if ($observation->has_multiple_results)
-                        <textarea class="form-control observation-results" name="observation-results-{{$observation->observation_id}}">{{implode(' ', $observation_results)}}</textarea>
+                        <textarea class="form-control observation-results" name="observation-results-{{$observation->observation_id}}">{{implode(' ', $observation->result_values)}}</textarea>
                     @else
-                        <input class="form-control observation-results" name="observation-results-{{$observation->observation_id}}" value="{{count($observation_results) == 1 ? $observation_results[0] : ''}}"/>
+                        <input class="form-control observation-results" name="observation-results-{{$observation->observation_id}}" value="{{count($observation->result_values) == 1 ? $observation->result_values[0] : ''}}"/>
                     @endif
                     </td>
                 </tr>
@@ -49,11 +49,16 @@
 @section ('scripts')
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <script>
-        $(() => {            
-            $('.observation-results').change(event => {
-                const target = $(event.target);
-                const values = target.type === 'text' ? [ target.val() ] : target.val().split(' ');
+        $(() => {        
+
+            colorizeResult = target => {
+                const values = target.type === 'text' ? [ target.val() ] : target.val().split(' ').filter(val => val !== '');
                 const parent = target.parents('td');
+                if (values.length === 0) {
+                    parent.parents('tr').css('color','black');
+                    target.css('color','black').css('font-weight','normal');
+                    return;
+                }                
                 const minValue = parent.data('minValue') || Number.MIN_SAFE_INTEGER;
                 const isMinValueInclusive = parent.data('isMinValueInclusive');
                 const maxValue = parent.data('maxValue') || Number.MAX_SAFE_INTEGER;
@@ -89,7 +94,16 @@
                     parent.parents('tr').css('color','green');
                     target.css('color','green').css('font-weight','normal');
                 }
+            };
+
+            $('.observation-results').change(event => {
+                colorizeResult($(event.target));
             });
+            
+            for(input of $('.observation-results')) {                
+                colorizeResult($(input));    
+            }           
+
         });
     </script>
 @endsection

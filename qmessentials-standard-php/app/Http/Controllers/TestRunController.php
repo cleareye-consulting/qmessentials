@@ -213,7 +213,8 @@ class TestRunController extends Controller
                     'is_min_value_inclusive' => $item->is_min_value_inclusive,
                     'max_value' => $item->max_value,
                     'is_max_value_inclusive' => $item->is_max_value_inclusive,
-                    'criteria' => $this->reconstruct_criteria($item->min_value, $item->is_min_value_inclusive, $item->max_value, $item->is_max_value_inclusive)
+                    'criteria' => $this->reconstruct_criteria($item->min_value, $item->is_min_value_inclusive, $item->max_value, $item->is_max_value_inclusive),
+                    'result_values' => []
                 ];
             },
             DB::table('observation')            
@@ -230,9 +231,17 @@ class TestRunController extends Controller
         $observation_results = 
             DB::table('observation')
             ->join('observation_result', 'observation_result.observation_id', '=', 'observation.observation_id')
-            ->pluck('result_value')
-            ->toArray();
-        return view('test-runs/edit-test-run', ['test_run' => $test_run, 'observations' => $observations, 'observation_results' => $observation_results]);
+            ->where('observation.test_run_id', $id)
+            ->select('observation_result.observation_id','observation_result.result_value')
+            ->get();
+        foreach ($observation_results as $observation_result) {
+            foreach ($observations as $observation) {
+                if ($observation->observation_id == $observation_result->observation_id) {
+                    array_push($observation->result_values, $observation_result->result_value);
+                }
+            }
+        }
+        return view('test-runs/edit-test-run', ['test_run' => $test_run, 'observations' => $observations]);
     }
 
     /**
@@ -248,9 +257,15 @@ class TestRunController extends Controller
             DB::table('observation')
             ->where('test_run_id', $id)
             ->pluck('observation_id');
-        DB::transaction(function() use ($observation_ids, $request) {
-            foreach($observation_ids as $observation_id) {
-                Log::debug('observation_id ' . $observation_id . ' value ' . $request->input('observation-results-' . $observation_id));
+        $observation_result_ids = 
+            DB::table('observation')
+            ->join('observation_result','observation_result.observation_id','=','observation.observation_id')
+            ->where('observation.test_run_id',$id)
+            ->pluck('observation_result.observation_result_id');
+        DB::transaction(function() use ($observation_ids, $observation_result_ids, $request) {
+            Log::debug('Deleting ' . strval(count($observation_result_ids)) . ' results');
+            DB::table('observation_result')->whereIn('observation_result_id', $observation_result_ids)->delete();
+            foreach($observation_ids as $observation_id) {                
                 $values = explode(' ', $request->input('observation-results-' . $observation_id));                
                 foreach ($values as $value) {
                     if ($value == '') {
