@@ -22,7 +22,8 @@ Auth::routes();
 Route::resources([
     'metrics' => 'MetricController',
     'lots' => 'LotController',
-    'test-runs' => 'TestRunController'
+    'test-runs' => 'TestRunController',
+    'users' => 'UserController'
 ]);
 
 Route::resource('test-plans','TestPlanController')->except('edit');

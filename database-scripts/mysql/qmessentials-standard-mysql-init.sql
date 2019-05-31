@@ -44,11 +44,26 @@ create table metric_methodology_reference (
 create table users (
 	id int auto_increment primary key,
 	name varchar (100) not null,
-    email varchar (500) not null,
+    username varchar (500) not null,
     password varchar (255) not null,
     remember_token varchar (100) null,
     created_at datetime not null,
     updated_at datetime null    
+);
+
+create table role (
+	role_id int auto_increment primary key,
+    role_name varchar (100)
+);
+
+insert role (role_name) values ('Administrator'), ('Analyst'), ('Lead Person'), ('Quality Manager'), ('Technician');
+
+create table user_role (
+	user_id int not null,
+    role_id int not null,
+    constraint pk_user_role primary key (user_id, role_id),
+    constraint fk_user_role_user foreign key (user_id) references users (id),
+    constraint fk_user_role_role foreign key (role_id) references role (role_id)
 );
 
 create table password_resets (
