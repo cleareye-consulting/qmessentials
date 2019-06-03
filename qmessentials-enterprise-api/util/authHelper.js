@@ -22,25 +22,3 @@ exports.getAuthenticatedUserId = async function (authorizationHeader) {
     const decodedValue = await verify(token, secret);
     return decodedValue;        
 }
-
-
-
-function verifyLogin(req, res, next) {
-		var token = /^Bearer (.*)$/.exec(req.headers.authorization)[1];
-		if (!token) {
-			console.log('Token not found');
-			res.sendStatus(403);
-		}
-		else {
-			jwt.verify(token, jwtSecret, (error, decodedValue) => {
-				if (error) {
-					console.log(error);
-					res.sendStatus(403);
-				}
-				else {
-					res.locals.userId = decodedValue;					
-					next();
-				}
-			});
-		}
-	};

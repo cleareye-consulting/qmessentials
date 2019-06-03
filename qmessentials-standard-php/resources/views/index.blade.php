@@ -4,13 +4,13 @@
 
 @section('content')
     <div class="container">
-        <ul>
-            <li><a href="metrics">Metrics</a></li>
-            <li><a href="test-plans">Test Plans</a></li>
-            <li><a href="products">Products</a></li>
-            <li><a href="lots">Lots</a></li>
-            <li><a href="test-runs">Test Runs</a></li>
-            <li><a href="users">Users</a></li>
+        <ul class="list-group">
+            <li class="list-group-item"><a href="metrics">Metrics</a></li>
+            <li class="list-group-item"><a href="test-plans">Test Plans</a></li>
+            <li class="list-group-item"><a href="products">Products</a></li>
+            <li class="list-group-item"><a href="lots">Lots</a></li>
+            <li class="list-group-item"><a href="test-runs">Test Runs</a></li>
+            <li class="list-group-item"><a href="users">Users</a></li>
         </ul>
     </div>
 @endsection
