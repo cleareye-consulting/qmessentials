@@ -14,20 +14,31 @@ export default class Metrics extends Component {
 
     async componentDidMount() {
         const api = new Api()
-        const metrics = (await api.listMetrics())
+        const metrics = (await api.listMetrics({isActive: true}))
         this.setState({ metrics: metrics })
     }
 
     render() {
         return (
             <React.Fragment>
-                <h2 className="subtitle">Metrics</h2>
-                {
-                    this.state.metrics.map(metric => 
-                        <div key={metric._id}><Link to={"/metric/" + metric._id}>{metric.metricName}</Link></div>
-                    )
-                }
-                <Link to="metric">Add a metric</Link>
+                <h3 className="subtitle">Metrics</h3>
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {
+                        this.state.metrics.map(metric => 
+                            <tr key={metric._id}>
+                                <td><Link to={"/metric/" + metric._id + "/edit"}>{metric.metricName}</Link></td>
+                            </tr>
+                        )
+                    }                        
+                    </tbody>
+                </table>
+                <Link to="/metric/create">Add a metric</Link>
             </React.Fragment>
         )
     }

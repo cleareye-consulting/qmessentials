@@ -36,7 +36,8 @@ module.exports = class repository {
                         "resultType": metric.resultType,
                         "hasMultipleResults": metric.hasMultipleResults,
                         "industryStandards": metric.industryStandards,
-                        "methodologyReferences": metric.methodologyReferences
+                        "methodologyReferences": metric.methodologyReferences,
+                        "isActive": metric.isActive
                     }
                 },
                 {}
