@@ -214,6 +214,7 @@ class TestRunController extends Controller
             function($item) {
                 return (object) [
                     'observation_id' => $item->observation_id,
+                    'metric_id' => $item->metric_id,
                     'metric_name' => $item->metric_name,
                     'qualifier' => $item->qualifier,
                     'unit' => $item->unit,
@@ -232,7 +233,7 @@ class TestRunController extends Controller
                 ->join('test_plan_metric','test_plan_metric.test_plan_metric_id','=','observation.test_plan_metric_id')
                 ->join('metric', 'metric.metric_id', '=', 'test_plan_metric.metric_id')
                 ->where('observation.test_run_id', $id)
-                ->select('observation.observation_id', 'metric.metric_name', 'test_plan_metric.qualifier', 'test_plan_metric.unit', 
+                ->select('observation.observation_id','metric.metric_id', 'metric.metric_name', 'test_plan_metric.qualifier', 'test_plan_metric.unit', 
                     'metric.has_multiple_results', 'observation.min_value', 'observation.is_min_value_inclusive', 'observation.max_value',
                     'observation.is_max_value_inclusive', 'observation.is_nullable')
                 ->get()

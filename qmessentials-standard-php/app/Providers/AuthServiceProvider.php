@@ -31,47 +31,52 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         Gate::before(function($user, $ability) {
-            if ($this->isUserInRole($user, 'Administrator')) {
+            if ($this->isUserInRole($user, ['Administrator'])) {
                 return true;
             }
         });
 
         Gate::define('write-metric', function($user) {
-            return $this->isUserInRole($user, 'Analyst');
+            return $this->isUserInRole($user, ['Analyst']);
+        });
+
+        Gate::define('read-metric', function($user) {
+            return $this->isUserInRole($user, ['Analyst', 'Technician']);
         });
 
         Gate::define('write-test-plan', function($user) {
-            return $this->isUserInRole($user, 'Analyst');
+            return $this->isUserInRole($user, ['Analyst']);
         });
 
         Gate::define('write-product', function($user) {
-            return $this->isUserInRole($user, 'Analyst');
+            return $this->isUserInRole($user, ['Analyst']);
         });
 
         Gate::define('write-user', function($user) {
-            return $this->isUserInRole($user, 'Administrator');
+            return $this->isUserInRole($user, ['Administrator']);
         });
 
         Gate::define('write-lot', function($user) {
-            return $this->isUserInRole($user, 'Lead Person');
+            return $this->isUserInRole($user, ['Lead Person']);
         });
 
         Gate::define('write-observation', function($user) {
-            return $this->isUserInRole($user, 'Technician');
+            return $this->isUserInRole($user, ['Technician']);
         });
 
         Gate::define('read-aggregate-data', function($user) {
-            return $this->isUserInRole($user, 'Quality Manager');
+            return $this->isUserInRole($user, ['Quality Manager']);
         });
 
         $this->bootstrapAdminUser();
 
     }
 
-    private function isUserInRole($user, $role_name) {
+    private function isUserInRole($user, $role_names) {
         return DB::table('user_role')
             ->join('role','role.role_id','=','user_role.role_id')
-            ->where([['user_role.user_id',$user->id],['role.role_name',$role_name]])
+            ->where('user_role.user_id', $user->id)
+            ->whereIn('role.role_name', $role_names)
             ->first() != NULL;
     }
 

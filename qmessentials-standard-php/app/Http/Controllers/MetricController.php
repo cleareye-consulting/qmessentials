@@ -112,7 +112,45 @@ class MetricController extends Controller
      */
     public function show($id)
     {
-        //
+        if (Gate::denies('read-metric')) {
+            return redirect()->action('MetricController@index');
+        }    
+        $metric = DB::table('metric')->where('metric_id', $id)->first();
+        $availableQualifiers = array_map(
+            function($item) {
+                return $item->qualifier;
+            },
+            DB::table('metric_available_qualifier')->select('qualifier')->where('metric_id', $id)->orderBy('sort_order')->get()->toArray());
+        $availableUnits = array_map(
+            function($item) {
+                return $item->unit;
+            },
+            DB::table('metric_available_unit')->select('unit')->where('metric_id', $id)->orderBy('sort_order')->get()->toArray());
+        $industryStandards = 
+            array_map(
+                function($item) {
+                    return $item->industry_standard;
+                },
+                DB::table('metric_industry_standard')->select('industry_standard')->where('metric_id', $id)->orderBy('sort_order')->get()->toArray()
+            );        
+        $methodologyReferences = 
+            array_map(
+                function($item) {
+                    return $item->methodology_reference;
+                },
+                DB::table('metric_methodology_reference')->select('methodology_reference')->where('metric_id', $id)->orderBy('sort_order')->get()->toArray()
+            );
+        $model = [
+            'metric_id' => $metric->metric_id,
+            'metric_name' => $metric->metric_name,
+            'has_multiple_results' => $metric->has_multiple_results,
+            'available_qualifiers' => $availableQualifiers,
+            'available_units' => $availableUnits,
+            'industry_standards' => $industryStandards,
+            'methodology_references' => $methodologyReferences,
+            'is_active' => $metric->is_active
+        ];
+        return view('metrics/view-metric', ['metric' => (object)$model]);
     }
 
     public function getAvailableQualifiers($metric_id) {

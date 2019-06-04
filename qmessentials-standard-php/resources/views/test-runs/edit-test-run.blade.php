@@ -21,7 +21,7 @@
             <tbody>
                 @foreach ($observations as $observation)
                 <tr>
-                    <td>{{$observation->metric_name}}{{!($observation->is_nullable) ? '*' : ''}}</td>
+                    <td><a href="/metrics/{{$observation->metric_id}}" target="_blank">{{$observation->metric_name}}{{!($observation->is_nullable) ? '*' : ''}}</a></td>
                     <td class="observation-criteria">{{$observation->criteria}} {{$observation->unit}}</td>
                     <td 
                         data-min-value="{{$observation->min_value}}" 
