@@ -5,7 +5,8 @@ export default class Home extends Component {
     render() {
         return (
             <ul className="list-group">
-                <li className="list-group-item"><Link to="metrics">Metrics</Link></li>
+                <li className="list-group-item"><Link to="/metrics">Metrics</Link></li>
+                <li className="list-group-item"><Link to="/test-plans">Test Plans</Link></li>
             </ul>
             
         )

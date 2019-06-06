@@ -47,6 +47,8 @@ const indexRouter = require('./routes/index');
 const loginsRouter = require('./routes/logins');
 const usersRouter = require('./routes/users');
 const metricsRouter = require('./routes/metrics');
+const testPlansRouter = require('./routes/testPlans');
+const testPlanMetricsRouter = require('./routes/testPlanMetrics');
 
 
 app.use('/', indexRouter);
@@ -75,5 +77,7 @@ app.use(extractUserId);
 
 app.use('/users', usersRouter);
 app.use('/metrics', metricsRouter);
+app.use('/test-plans', testPlansRouter);
+app.use('/test-plan-metrics', testPlanMetricsRouter);
 
 module.exports = app;

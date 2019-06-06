@@ -6,6 +6,9 @@ import Home from './components/Home'
 import MetricsList from './components/metrics/List'
 import MetricsCreate from './components/metrics/Create'
 import MetricsEdit from './components/metrics/Edit'
+import TestPlansList from './components/testPlans/List'
+import TestPlansCreate from './components/testPlans/Create'
+import TestPlansEdit from './components/testPlans/Edit'
 import './App.scss'
 import Login from './components/auth/Login'
 import AuthRequired from './components/auth/AuthRequired';
@@ -21,6 +24,9 @@ export default class App extends Component {
             <Route path="/metrics" exact component={MetricsList} />
             <Route path="/metric/create" exact component={MetricsCreate} />
             <Route path="/metric/:id/edit" exact component={MetricsEdit} />
+            <Route path="/test-plans" exact component={TestPlansList} />
+            <Route path="/test-plans/create" exact component={TestPlansCreate} />
+            <Route path="/test-plans/:id/edit" exact component={TestPlansEdit} />
           </AuthRequired>
         </Layout>
       </BrowserRouter>

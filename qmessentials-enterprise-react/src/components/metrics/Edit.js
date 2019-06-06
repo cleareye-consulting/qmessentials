@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Link} from 'react-router-dom'
 import ApiConnector from '../../ApiConnector';
 
-export default class MetricEditor extends Component {
+export default class Edit extends Component {
 
     constructor(props) {
         super(props)

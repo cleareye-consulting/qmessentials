@@ -8,20 +8,20 @@ export default class List extends Component {
     constructor() {
         super()
         this.state = {
-            metrics: []
+            testPlans: []
         }
     }
 
     async componentDidMount() {
         const api = new Api()
-        const metrics = (await api.listMetrics({isActive: true}))
-        this.setState({ metrics: metrics })
+        const testPlans = (await api.listTestPlans({isActive: true}))
+        this.setState({ testPlans: testPlans })
     }
 
     render() {
         return (
             <React.Fragment>
-                <h3 className="subtitle">Metrics</h3>
+                <h3 className="subtitle">Test Plans</h3>
                 <table className="table">
                     <thead>
                         <tr>
@@ -30,15 +30,15 @@ export default class List extends Component {
                     </thead>
                     <tbody>
                     {
-                        this.state.metrics.map(metric => 
-                            <tr key={metric._id}>
-                                <td><Link to={"/metric/" + metric._id + "/edit"}>{metric.metricName}</Link></td>
+                        this.state.testPlans.map(testPlan => 
+                            <tr key={testPlan._id}>
+                                <td><Link to={"/test-plans/" + testPlan._id + "/edit"}>{testPlan.testPlanName}</Link></td>
                             </tr>
                         )
                     }                        
                     </tbody>
                 </table>
-                <Link to="/metric/create">Add a metric</Link>
+                <Link to="/test-plans/create">Add a test plan</Link>
             </React.Fragment>
         )
     }

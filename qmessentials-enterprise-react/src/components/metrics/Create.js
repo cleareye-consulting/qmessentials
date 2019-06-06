@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Link} from 'react-router-dom'
 import ApiConnector from '../../ApiConnector';
 
-export default class MetricEditor extends Component {
+export default class Create extends Component {
 
     constructor(props) {
         super(props)
@@ -52,7 +52,6 @@ export default class MetricEditor extends Component {
             <React.Fragment>
                 <h3>Create Metric</h3>
                 <form className="form">
-                    <input type="hidden" id="_id" name="_id" defaultValue={this.props.match.params.id}/>
                     <div className="form-group">
                         <label className="control-label" htmlFor="metricName">Name</label>
                         <input className="form-control" type="text" id="metricName" name="metricName" onChange={this.handleChange} />
