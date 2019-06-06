@@ -26,7 +26,7 @@
         </div>
         <div class="form-group">
             <button class="btn btn-primary">Create Test Run</button>
-            <a class="btn btn-default" href="/test-runs">Cancel</a>
+            <a class="btn btn-outline-primary" href="/test-runs">Cancel</a>
         </div>
     </form>
     </div>

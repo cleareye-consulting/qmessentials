@@ -14,6 +14,14 @@
                 </tr>
             </thead>
             <tbody>
+            @php
+                usort($users, function($a, $b) {
+                    if ($a->name == $b->name) {
+                        return 0;
+                    }
+                    return ($a->name < $b->name) ? -1 : 1;
+                })
+            @endphp
             @foreach($users as $user) 
                 <tr>
                     <td><a href="/users/{{$user->id}}/edit">{{$user->name}}</a></td>

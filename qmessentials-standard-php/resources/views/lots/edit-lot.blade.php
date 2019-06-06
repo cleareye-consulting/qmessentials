@@ -42,13 +42,13 @@
             @endforeach
                 <tr>
                     <td><input class="form-control" type="text" id="new_item_number" name="new_item_number" placeholder="Item #" /></td>
-                    <td><button class="btn btn-small btn-default">Add Item</button></td>
+                    <td><button class="btn btn-sm btn-outline-primary">Add Item</button></td>
                 </tr>
             </tbody>
         </table>
         <div class="form-group">
             <button class="btn btn-primary">Save Changes</button>
-            <a class="btn btn-default" href="/lots">Return to List</a>
+            <a class="btn btn-outline-primary" href="/lots">Return to List</a>
         </div>
     </form>
     </div>

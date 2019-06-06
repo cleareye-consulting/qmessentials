@@ -47,7 +47,7 @@
         </div>
         <div class="form-group">
             <button class="btn btn-primary">Save Changes</button>
-            <a class="btn btn-default" href="/metrics">Cancel</a>
+            <a class="btn btn-outline-primary" href="/metrics">Cancel</a>
         </div>
     </form>
     </div>

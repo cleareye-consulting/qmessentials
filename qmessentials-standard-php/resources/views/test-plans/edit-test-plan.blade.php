@@ -45,6 +45,7 @@
                     <td>{{$test_plan_metric->metric_name}}</td>
                     <td>
                         <select class="form-control" id="edited_metric_qualifier" name="edited_metric_qualifier">
+                            <option value="">&nbsp;</option>
                         @foreach($available_qualifiers_for_edit as $qualifier)
                             <option {{$qualifier == $test_plan_metric->qualifier ? 'selected' : ''}}>{{$qualifier}}</option>
                         @endforeach
@@ -74,7 +75,7 @@
                     </td>
                     <td><input type="checkbox" id="edited_metric_is_nullable" name="edited_metric_is_nullable" {{$test_plan_metric->is_nullable ? 'checked' : ''}}/></td>
                     <td><input type="checkbox" id="edited_metric_is_active" name="edited_metric_is_active" {{$test_plan_metric->is_active ? 'checked' : ''}}/></td>
-                    <td><button class="btn btn-small btn-default">Update</button></td>
+                    <td><button class="btn btn-sm btn-primary">Update</button></td>
                 </tr>
                 @else
                 <tr>
@@ -86,7 +87,7 @@
                     <td>{{$test_plan_metric->unit}}</td>
                     <td>{{$test_plan_metric->is_nullable ? 'Y' : 'N'}}</td>
                     <td>{{$test_plan_metric->is_active ? 'Y' : 'N'}}</td>
-                    <td><a class="btn btn-small btn-default" href="/test-plans/{{$test_plan_metric->test_plan_id}}/edit/{{$test_plan_metric->test_plan_metric_id}}">Edit</a></td>
+                    <td><a class="btn btn-sm btn-outline-primary" href="/test-plans/{{$test_plan_metric->test_plan_id}}/edit/{{$test_plan_metric->test_plan_metric_id}}">Edit</a></td>
                 </tr>
                 @endif
             @endforeach
@@ -120,14 +121,14 @@
                     <td><select class="form-control" id="new_metric_unit" name="new_metric_unit"></select></td>
                     <td><input type="checkbox" id="new_metric_is_nullable" name="new_metric_is_nullable"/></td>
                     <td><input type="checkbox" id="new_metric_is_active" name="new_metric_is_active" checked/></td>
-                    <td><button class="btn btn-small btn-default">Add</button></td>
+                    <td><button class="btn btn-sm btn-outline-primary">Add</button></td>
                 </tr>
                 @endif
             </tbody>
         </table>
         <div class="form-group">
             <button class="btn btn-primary" id="submitButton" disabled>Save Changes</button>
-            <a class="btn btn-default" href="/test-plans">Return to List</a>
+            <a class="btn btn-outline-primary" href="/test-plans">Return to List</a>
         </div>
     </form>
     </div>

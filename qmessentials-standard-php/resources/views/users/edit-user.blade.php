@@ -27,7 +27,7 @@
         </div>
         <div class="form-group">
             <button class="btn btn-primary">Save Changes</button>
-            <a class="btn btn-default" href="/users">Return to List</a>
+            <a class="btn btn-outline-primary" href="/users">Return to List</a>
         </div>
     </form>
     </div>

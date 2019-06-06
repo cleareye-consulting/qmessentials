@@ -37,7 +37,7 @@
         </div>      
         <div class="form-group">
             <button class="btn btn-primary">Add Metric</button>
-            <a class="btn btn-default" href="/metrics">Cancel</a>
+            <a class="btn btn-outline-primary" href="/metrics">Cancel</a>
         </div>
     </form>
     </div>

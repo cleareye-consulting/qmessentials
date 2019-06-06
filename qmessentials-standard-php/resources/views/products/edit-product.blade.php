@@ -42,12 +42,12 @@
                             </select>
                         </td>
                         <td><input type="checkbox" id="edited_product_test_plan_is_required" name="edited_product_test_plan_is_required" {{$product_test_plan->is_required ? 'checked' : ''}}></td>
-                        <td><button class="btn btn-small btn-default">Update</button></td>
+                        <td><button class="btn btn-sm btn-primary">Update</button></td>
                     @else
                         <td>{{$product_test_plan->test_plan_name}}</td>
                         <td>{{$product_test_plan->is_required ? 'Y' : 'N'}}</td>
                         @if (is_null($product_test_plan_id_under_edit))
-                        <td><a class="btn btn-small btn-default" href="/products/{{$product->product_id}}/edit/{{$product_test_plan->product_test_plan_id}}">Edit</a></td>
+                        <td><a class="btn btn-sm btn-outline-primary" href="/products/{{$product->product_id}}/edit/{{$product_test_plan->product_test_plan_id}}">Edit</a></td>
                         @endif
                     @endif
                 </tr>
@@ -63,7 +63,7 @@
                         </select>
                     </td>
                     <td><input type="checkbox" id="new_product_test_plan_is_required" name="new_product_test_plan_is_required"></td>
-                    <td><button class="btn btn-small btn-default">Add</button></td>
+                    <td><button class="btn btn-sm btn-outline-primary">Add</button></td>
                 </tr>
                 @endif
             </tbody>
@@ -71,7 +71,7 @@
         </div>
         <div class="form-group">
             <button class="btn btn-primary">Save Changes</button>
-            <a class="btn btn-default" href="/products">Return to List</a>
+            <a class="btn btn-outline-primary" href="/products">Return to List</a>
         </div>
     </form>
     </div>

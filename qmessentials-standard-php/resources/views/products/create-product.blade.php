@@ -13,7 +13,7 @@
         </div>        
         <div class="form-group">
             <button class="btn btn-primary">Add Product</button>
-            <a class="btn btn-default" href="/products">Cancel</a>
+            <a class="btn btn-outline-primary" href="/products">Cancel</a>
         </div>
     </form>
     </div>
