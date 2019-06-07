@@ -17,7 +17,6 @@ class CreateMetricsTable extends Migration
             $table->bigIncrements('id');
             $table->string('metric_name', 255);
             $table->boolean('has_multiple_results');
-            $table->boolean('is_active');
             $table->softDeletes();
             $table->timestamps();
         });

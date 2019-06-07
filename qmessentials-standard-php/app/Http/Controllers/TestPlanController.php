@@ -2,6 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\TestPlan;
+use App\TestPlanMetric;
+use App\Metric;
+use App\MetricAvailableQualifier;
+use App\MetricAvailableUnit;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -21,7 +27,7 @@ class TestPlanController extends Controller
      */
     public function index()
     {
-        $test_plans = DB::table('test_plan')->where('is_active',true)->get();
+        $test_plans = TestPlan::all();
         return view('test-plans/test-plans', ['test_plans' => $test_plans]);
     }
 
@@ -52,39 +58,29 @@ class TestPlanController extends Controller
         if (Gate::denies('write-test-plan')) {
             return redirect()->action('TestPlanController@index');
         }
-        $test_plan_name = $request->input('test_plan_name');
-        $duplicate_of_plan_id = $request->input('duplicate_of_plan_id');
-        if (!is_null($duplicate_of_plan_id)) {
-            $original_metrics = DB::table('test_plan_metric')->where([['test_plan_id', $duplicate_of_plan_id],['is_active',true]])->get();
-            DB::transaction(function() use ($duplicate_of_plan_id, $original_metrics, $test_plan_name)  {
-                $test_plan_id = DB::table('test_plan')->insertGetId([
-                    'test_plan_name' => $test_plan_name,
-                    'is_active' => true
-                ]);
-                foreach($original_metrics as $original_metric) {
-                    DB::table('test_plan_metric')->insert([
-                        'test_plan_id' => $test_plan_id,
-                        'metric_id' => $original_metric->metric_id,
-                        'sort_order'=> $original_metric->sort_order,
-                        'unit' => $original_metric->unit,
-                        'usage_code' => $original_metric->usage_code,
-                        'qualifier'=> $original_metric->qualifier,
-                        'is_nullable'=> $original_metric->is_nullable,
-                        'min_value'=> $original_metric->min_value,
-                        'is_min_value_inclusive'=> $original_metric->is_min_value_inclusive,
-                        'max_value'=> $original_metric->max_value,
-                        'is_max_value_inclusive'=> $original_metric->is_max_value_inclusive,
-                        'is_active' => true
-                    ]);
+        DB::transaction(function() use ($request) {
+            $testPlan = new TestPlan;
+            $testPlan->test_plan_name = $request->test_plan_name;
+            $testPlan->save();
+            if (!is_null($request->duplicate_of_plan_id)) {
+                $originalMetrics =  TestPlanMetric::where('test_plan_id', $duplicate_of_plan_id)->get();    
+                foreach($originalMetrics as $originalMetric) {
+                    $duplicateMetric = new TestPlanMetric;
+                    $duplicateMetric->test_plan_id = $testPlan->id;
+                    $duplicateMetric->metric_id = $original_metric->metric_id;
+                    $duplicateMetric->sort_order = $original_metric->sort_order;
+                    $duplicateMetric->unit = $original_metric->unit;
+                    $duplicateMetric->usage_code = $original_metric->usage_code;
+                    $duplicateMetric->qualifier = $original_metric->qualifier;
+                    $duplicateMetric->is_nullable = $original_metric->is_nullable;
+                    $duplicateMetric->min_value = $original_metric->min_value;
+                    $duplicateMetric->is_min_value_inclusive = $original_metric->is_min_value_inclusive;
+                    $duplicateMetric->max_value = $original_metric->max_value;
+                    $duplicateMetric->is_max_value_inclusive = $original_metric->is_max_value_inclusive;
+                    $duplicateMetric->save();
                 }
-            });
-        }
-        else {
-            DB::table('test_plan')->insert([
-                'test_plan_name' => $test_plan_name,
-                'is_active' => true
-            ]);
-        }
+            }
+        });
         return redirect('/test-plans');
     }
 
@@ -110,50 +106,15 @@ class TestPlanController extends Controller
         if (Gate::denies('write-test-plan')) {
             return redirect()->action('TestPlanController@index');
         }
-        $test_plan = DB::table('test_plan')->where('test_plan_id', $id)->first();
-        $test_plan_metrics = 
-        array_map(            
-            function($tpm) {
-                return (object) [
-                    'test_plan_metric_id' => $tpm->test_plan_metric_id,
-                    'metric_id' => $tpm->metric_id,
-                    'metric_name' => $tpm->metric_name,
-                    'test_plan_id' => $tpm->test_plan_id,
-                    'sort_order' => $tpm->sort_order,
-                    'qualifier' => $tpm->qualifier,
-                    'unit' => $tpm->unit,
-                    'usage_code' => $tpm->usage_code,
-                    'criteria' => $this->reconstruct_criteria((float) $tpm->min_value, (bool) $tpm->is_min_value_inclusive, (float) $tpm->max_value, (bool) $tpm->is_max_value_inclusive),
-                    'is_nullable' => $tpm->is_nullable,
-                    'is_active' => $tpm->is_active
-                ];
-            },
-            DB::table('test_plan_metric')
-                ->join('metric', 'test_plan_metric.metric_id', '=', 'metric.metric_id')
-                ->where([['test_plan_metric.test_plan_id', $id],['test_plan_metric.is_active',true]])
-                ->select(['test_plan_metric.test_plan_id', 'test_plan_metric.test_plan_metric_id', 'metric.metric_id','metric.metric_name',
-                    'test_plan_metric.sort_order','test_plan_metric.qualifier','test_plan_metric.unit','test_plan_metric.usage_code',
-                    'test_plan_metric.min_value','test_plan_metric.is_min_value_inclusive','test_plan_metric.max_value',
-                    'test_plan_metric.is_max_value_inclusive','test_plan_metric.is_nullable','test_plan_metric.is_active'])
-                ->orderby('test_plan_metric.sort_order')
-                ->get()
-                ->toArray()
-        );
+        $test_plan = TestPlan::find($id);
+        $test_plan_metrics = TestPlanMetric::where('test_plan_id', $id);
         $availableQualifiersForEdit = NULL;
         $availableUnitsForEdit = NULL;
-        $metrics = DB::table('metric')->where('is_active',true)->select('metric_id', 'metric_name')->get();        
+        $metrics = Metrics::all();
         if (!is_null($test_plan_metric_id_under_edit)) {
-            $metric_id = DB::table('test_plan_metric')->where('test_plan_metric_id',$test_plan_metric_id_under_edit)->value('metric_id');
-            $availableQualifiersForEdit = array_map(
-                function($item) {
-                    return $item->qualifier;
-                },
-                DB::table('metric_available_qualifier')->select('qualifier')->where('metric_id', $metric_id)->orderBy('sort_order')->get()->toArray());
-            $availableUnitsForEdit = array_map(
-                function($item) {
-                    return $item->unit;
-                },
-                DB::table('metric_available_unit')->select('unit')->where('metric_id', $metric_id)->orderBy('sort_order')->get()->toArray());
+            $metric_id = TestPlanMetric::where('test_plan_metric_id',$test_plan_metric_id_under_edit)->value('metric_id');
+            $availableQualifiersForEdit = MetricAvailableQualifier::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('qualifier');
+            $availableUnitsForEdit = MetricAvailableUnit::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('unit');
         }
         return view('test-plans/edit-test-plan', 
             [
@@ -196,28 +157,6 @@ class TestPlanController extends Controller
         return ['min_value' => null, 'is_min_value_inclusive' => null,  'max_value' => null, 'is_max_value_inclusive' => null];
     }
 
-    private function reconstruct_criteria($min_value, $is_min_value_inclusive, $max_value, $is_max_value_inclusive) {
-        if ($min_value != '') {
-            if ($max_value != '') {
-                if ($min_value == $max_value) {
-                    return $min_value;
-                }
-                else {
-                    return ($is_min_value_inclusive ? '[' : '(') . $min_value . '..' . $max_value . ($is_max_value_inclusive ? ']' : ')');
-                }
-            }            
-            else {
-                return '>' . ($is_min_value_inclusive ? '=' : '') . $min_value;
-            }
-        }
-        else {
-            if ($max_value != '') {
-                return '<' . ($is_max_value_inclusive ? '=' : '') . $max_value;
-            }
-        }
-        return '';
-    }
-
     private function renumber_test_plan_metrics($test_plan_id, $new_number, $new_number_holder) {
         $number_holder_count = 
             DB::table('test_plan_metric')->where([['test_plan_id', $test_plan_id],['sort_order', $new_number]])->count();
@@ -241,44 +180,40 @@ class TestPlanController extends Controller
         if (Gate::denies('write-test-plan')) {
             return redirect()->action('TestPlanController@index');
         }
-        DB::table('test_plan')->where('test_plan_id', $request->input('test_plan_id'))->update(['is_active' => ($request->input('is_active') == 'on')]);        
         if ($request->input('new_metric_id') != 0) {            
-            $criteria = $this->parse_criteria($request->input('new_metric_criteria') ?? 'Any');
-            $new_test_plan_metric_id = DB::table('test_plan_metric')
-                ->insertGetId([
-                    'test_plan_id' => $request->input('test_plan_id'),
-                    'metric_id' => $request->input('new_metric_id'),
-                    'sort_order' => $request->input('new_metric_sort_order'),
-                    'qualifier' => $request->input('new_metric_qualifier'),                
-                    'usage_code' => $request->input('new_metric_usage_code'),
-                    'unit' => $request->input('new_metric_unit'),
-                    'is_nullable' => $request->input('new_metric_is_nullable') == 'on',
-                    'min_value' => $criteria['min_value'],
-                    'is_min_value_inclusive' => $criteria['is_min_value_inclusive'],
-                    'max_value' =>  $criteria['max_value'],
-                    'is_max_value_inclusive' => $criteria['is_max_value_inclusive'],
-                    'is_active' => $request->input('new_metric_is_active') == 'on'
-                ]);
-            $this->renumber_test_plan_metrics($request->input('test_plan_id'), $request->input('new_metric_sort_order'), $new_test_plan_metric_id);
+            $criteria = $this->parse_criteria($request->new_metric_criteria ?? 'Any');
+            $newTestPlanMetric = new TestPlanMetric;
+            $newTestPlanMetric->test_plan_id = $request->test_plan_id;
+            $newTestPlanMetric->metric_id = $request->new_metric_id;
+            $newTestPlanMetric->sort_order = $request->new_metric_sort_order;
+            $newTestPlanMetric->qualifier = $request->new_metric_qualifier;              
+            $newTestPlanMetric->usage_code = $request->new_metric_usage_code;
+            $newTestPlanMetric->unit = $request->new_metric_unit;
+            $newTestPlanMetric->is_nullable = $request->new_metric_is_nullable == 'on';                    
+            $newTestPlanMetric->min_value = $criteria['min_value'];
+            $newTestPlanMetric->is_min_value_inclusive = $criteria['is_min_value_inclusive'];
+            $newTestPlanMetric->max_value =  $criteria['max_value'];
+            $newTestPlanMetric->is_max_value_inclusive = $criteria['is_max_value_inclusive'];
+            $newTestPlanMetric->save();
+            $this->renumber_test_plan_metrics($request->test_plan_id, $request->new_metric_sort_order, $newTestPlanMetric->id);
             return redirect()->action('TestPlanController@edit', ['id' => $id]);
         }
-        else if ($request->input('test_plan_metric_id_under_edit') != '') {
-            $criteria = $this->parse_criteria($request->input('edited_metric_criteria') ?? 'Any');
-            DB::table('test_plan_metric')
-                ->where('test_plan_metric_id', $request->input('test_plan_metric_id_under_edit'))
-                ->update([
-                    'sort_order' => $request->input('edited_metric_sort_order'),
-                    'qualifier' => $request->input('edited_metric_qualifier'),                
-                    'usage_code' => $request->input('edited_metric_usage_code'),
-                    'unit' => $request->input('edited_metric_unit'),
-                    'is_nullable' => $request->input('edited_metric_is_nullable') == 'on',
-                    'min_value' => $criteria['min_value'],
-                    'is_min_value_inclusive' => $criteria['is_min_value_inclusive'],
-                    'max_value' =>  $criteria['max_value'],
-                    'is_max_value_inclusive' => $criteria['is_max_value_inclusive'],
-                    'is_active' => $request->input('edited_metric_is_active') == 'on'
-                ]);
-            $this->renumber_test_plan_metrics($request->input('test_plan_id'), $request->input('edited_metric_sort_order'), $request->input('test_plan_metric_id_under_edit'));
+        else if ($request->test_plan_metric_id_under_edit != '') {
+            $criteria = $this->parse_criteria($request->edited_metric_criteria ?? 'Any');
+            $editedTestPlanMetric = TestPlanMetric::find($request->test_plan_metric_id_under_edit);
+            $editedTestPlanMetric->test_plan_id = $request->test_plan_id;
+            $editedTestPlanMetric->metric_id = $request->edited_metric_id;
+            $editedTestPlanMetric->sort_order = $request->edited_metric_sort_order;
+            $editedTestPlanMetric->qualifier = $request->edited_metric_qualifier;              
+            $editedTestPlanMetric->usage_code = $request->edited_metric_usage_code;
+            $editedTestPlanMetric->unit = $request->edited_metric_unit;
+            $editedTestPlanMetric->is_nullable = $request->edited_metric_is_nullable == 'on';                    
+            $editedTestPlanMetric->min_value = $criteria['min_value'];
+            $editedTestPlanMetric->is_min_value_inclusive = $criteria['is_min_value_inclusive'];
+            $editedTestPlanMetric->max_value =  $criteria['max_value'];
+            $editedTestPlanMetric->is_max_value_inclusive = $criteria['is_max_value_inclusive'];
+            $editedTestPlanMetric->save();
+            $this->renumber_test_plan_metrics($request->test_plan_id, $request->edited_metric_sort_order, $test_plan_metric_id_under_edit);
             return redirect()->action('TestPlanController@edit', ['id' => $id]);
         }
         return redirect()->action('TestPlanController@index');
@@ -292,6 +227,6 @@ class TestPlanController extends Controller
      */
     public function destroy($id)
     {
-        //
+        TestPlan::destroy($id);
     }
 }

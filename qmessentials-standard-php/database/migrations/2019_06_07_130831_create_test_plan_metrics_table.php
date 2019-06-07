@@ -15,6 +15,18 @@ class CreateTestPlanMetricsTable extends Migration
     {
         Schema::create('test_plan_metrics', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->int('test_plan_id');
+            $table->foreign('test_plan_id')->references('id')->on('test_plan');
+            $table->int('metric_id');
+            $table->foreign('metric_id')->references('id')->on('metric');
+            $table->int('sort_order');
+            $table->string('qualifier', 100)->nullable();
+            $table->string('unit', 100)->nullable();
+            $table->double('min_value')->nullable();
+            $table->boolean('is_min_value_inclusive')->nullable();
+            $table->double('max_value')->nullable();
+            $table->boolean('is_max_value_inclusive')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

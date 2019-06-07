@@ -15,6 +15,8 @@ class CreateTestPlansTable extends Migration
     {
         Schema::create('test_plans', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('test_plan_name', 500);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

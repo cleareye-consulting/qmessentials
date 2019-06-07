@@ -87,7 +87,9 @@
                     <td>{{$test_plan_metric->unit}}</td>
                     <td>{{$test_plan_metric->is_nullable ? 'Y' : 'N'}}</td>
                     <td>{{$test_plan_metric->is_active ? 'Y' : 'N'}}</td>
-                    <td><a class="btn btn-sm btn-outline-primary" href="/test-plans/{{$test_plan_metric->test_plan_id}}/edit/{{$test_plan_metric->test_plan_metric_id}}">Edit</a></td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary" href="/test-plans/{{$test_plan_metric->test_plan_id}}/edit/{{$test_plan_metric->test_plan_metric_id}}">Edit</a>
+                    </td>
                 </tr>
                 @endif
             @endforeach
