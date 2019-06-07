@@ -16,10 +16,10 @@ class CreateProductTestPlansTable extends Migration
         Schema::create('product_test_plans', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->int('product_id');
-            $table->foreign('product_id')->references('id')->on('prduct');
+            $table->foreign('product_id')->references('id')->on('products');
             $table->int('test_plan_sequence_number');
             $table->int('test_plan_id');
-            $table->foreign('test_plan_id')->references('id')->on('test_plan');
+            $table->foreign('test_plan_id')->references('id')->on('test_plans');
             $table->boolean('is_required');
             $table->timestamps();
         });

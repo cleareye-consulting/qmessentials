@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\Role;
+use App\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -36,8 +38,7 @@ class UserController extends Controller
             DB::table('users')->get()->toArray()
         );
         $user_roles = 
-            DB::table('user_role')
-            ->join('role','role.role_id','=','user_role.role_id')
+            UserRole::join('role','role.role_id','=','user_role.role_id')
             ->select('user_role.user_id','role.role_name')
             ->get();
         foreach ($user_roles as $user_role) {
@@ -60,7 +61,7 @@ class UserController extends Controller
         if (Gate::denies('write-user')) {
             return redirect()->action('UserController@index');
         }
-        $roles = DB::table('role')->get();
+        $roles = Role::all();
         return view('users/create-user', ['roles' => $roles]);
     }
 
@@ -80,11 +81,10 @@ class UserController extends Controller
             'password' => Hash::make($request->input('initial_password'))            
         ]);
         foreach ($request->input('roles') as $role_id) {
-            DB::table('user_role')
-                ->insert([
-                    'user_id' => $user->id,
-                    'role_id' => $role_id
-                ]);    
+            UserRole::create([
+                'user_id' => $user->id,
+                'role_id' => $role_id                
+            ]);
         }
         return redirect()->action('UserController@index');
     }
@@ -113,12 +113,12 @@ class UserController extends Controller
         }
         $user = DB::table('users')->where('id', $id)->first();
         $user_roles = 
-            DB::table('user_role')
+            UserRole::all()
             ->join('role','role.role_id','=','user_role.role_id')
             ->where('user_role.user_id', $id)
             ->pluck('role.role_id')
             ->toArray();
-        $roles = DB::table('role')->get();
+        $roles = Role::all();
         return view('users/edit-user', ['user' => $user, 'user_roles' => $user_roles, 'roles' => $roles]);
     }
 
@@ -137,21 +137,19 @@ class UserController extends Controller
         DB::transaction(function() use ($request, $id) {
             if ($request->input('updated_password') != '') {
                 Log::warn('Updating password for user ' . $id);
-                DB::table('users')
-                    ->where('id', $id)
-                    ->update(['password' => Hash::make($request->input('initial_password'))]);                
+                $user = Users::find($id);
+                $user->password = Hash::make($request->updated_password);
+                $user->save();
             }
-            $old_role_ids = DB::table('user_role')->where('user_id', $id)->pluck('role_id')->toArray();
-            DB::table('user_role')
-                ->where('user_id', $id)
+            $old_role_ids = UserRole::where('user_id', $id)->pluck('role_id')->toArray();
+            UserRole::where('user_id', $id)
                 ->whereIn('role_id', $old_role_ids)
                 ->delete();
             foreach ($request->input('roles') as $role_id) {
-                DB::table('user_role')
-                    ->insert([
+                UserRole::create([
                         'user_id' => $id,
                         'role_id' => $role_id
-                    ]);
+                ]);
             }
         });
         return redirect()->action('UserController@index');
@@ -165,6 +163,6 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        User::destroy($id);
     }
 }

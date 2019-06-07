@@ -2,6 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\TestRun;
+use App\Observation;
+use App\ObservationResult;
+use App\Lot;
+use App\Item;
+use App\TestPlan;
+use App\TestPlanMetric;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -22,8 +30,7 @@ class TestRunController extends Controller
      */
     public function index()
     {
-        $test_runs = DB::table('test_run')
-            ->join('item', 'test_run.item_id', '=', 'item.item_id')
+        $test_runs = TestRun::join('item', 'test_run.item_id', '=', 'item.item_id')
             ->join('lot', 'item.lot_id', '=', 'lot.lot_id')
             ->join('product', 'lot.product_id', '=', 'product.product_id')
             ->join('test_plan', 'test_run.test_plan_id', '=', 'test_plan.test_plan_id')
@@ -33,16 +40,12 @@ class TestRunController extends Controller
     }
 
     public function getItemsForLot($lot_id) {
-        $items = DB::table('item')
-            ->select('item_id', 'item_number')
-            ->where('lot_id', $lot_id)
-            ->get();
+        $items = Item::where('lot_id', $lot_id)->get();
         return response()->json($items);
     }
 
     public function getTestPlansForItem($item_id) {
-        $test_plans = DB::table('item')
-            ->join('lot', 'item.lot_id', '=', 'lot.lot_id')
+        $test_plans = Item::join('lot', 'item.lot_id', '=', 'lot.lot_id')
             ->join('product', 'lot.product_id', '=', 'product.product_id')
             ->join('product_test_plan', 'product.product_id', '=', 'product_test_plan.product_id')
             ->join('test_plan', 'product_test_plan.test_plan_id', '=', 'test_plan.test_plan_id')
@@ -62,7 +65,7 @@ class TestRunController extends Controller
         if (Gate::denies('write-observation')) {
             return redirect()->action('TestRunController@index');
         }
-        $lots = DB::table('lot')->get();
+        $lots = Lot::all();
         return view('test-runs/create-test-run', ['lots' => $lots]);
     }
 
@@ -113,42 +116,29 @@ class TestRunController extends Controller
         }
         $item_id = $request->input('item_id');
         $test_plan_id = $request->input('test_plan_id');
-        $item = DB::table('item')
-            ->where('item_id', $item_id)
-            ->select('lot_id', 'created_date')
-            ->first();
-        $item_count_for_lot = DB::table('item')
-            ->where('lot_id', $item->lot_id)
-            ->count();
-        $item_sequence_number = (DB::table('item')
-            ->where([['lot_id', $item->lot_id],['created_date', '<', $item->created_date]])
-            ->count() ?? 0) + 1;        
+        $item = Item::find($item_id);
+        $item_count_for_lot = Item::where('lot_id', $item->lot_id)->count();
+        $item_sequence_number = (Item::where([['lot_id', $item->lot_id],['created_at', '<', $item->created_at]])->count() ?? 0) + 1;        
         DB::transaction(function() use ($item_id, $test_plan_id, $item_count_for_lot, $item_sequence_number) {
-            $test_run_id = DB::table('test_run')
-                ->insertGetId([
-                    'item_id' => $item_id,
-                    'test_plan_id' => $test_plan_id,
-                    'created_date' => date('Y-m-d H:i:s')
-                ]);
-            $test_plan_metrics = 
-                DB::table('test_plan_metric')
-                    ->where([['test_plan_id', $test_plan_id],['is_active', true]])
-                    ->orderby('sort_order')
-                    ->select('test_plan_metric_id','metric_id', 'usage_code', 'min_value', 'is_min_value_inclusive', 'max_value', 'is_max_value_inclusive', 'is_nullable')
-                    ->get();
+            $testRun = new TestRun;
+            $testRun->item_id = $item_id;
+            $testRun->test_plan_id = $test_plan_id;
+            $testRun->save();
+            $test_plan_metrics = TestPlanMetric::where('test_plan_id', $test_plan_id)
+                ->orderby('sort_order')
+                ->select('test_plan_metric_id','metric_id', 'usage_code', 'min_value', 'is_min_value_inclusive', 'max_value', 'is_max_value_inclusive', 'is_nullable')
+                ->get();
             foreach ($test_plan_metrics as $test_plan_metric) {
                 if ($this->is_observation_needed($item_sequence_number, $item_count_for_lot, $test_plan_metric->usage_code)) {
-                    DB::table('observation')
-                        ->insert([
-                            'test_run_id' => $test_run_id,
-                            'test_plan_metric_id' => $test_plan_metric->test_plan_metric_id,
-                            'created_date' => date('Y-m-d H:i:s'),
-                            'min_value' => $test_plan_metric->min_value,
-                            'is_min_value_inclusive' => $test_plan_metric->is_min_value_inclusive,
-                            'max_value' => $test_plan_metric->max_value,
-                            'is_max_value_inclusive' => $test_plan_metric->is_max_value_inclusive,
-                            'is_nullable' => $test_plan_metric->is_nullable
-                        ]);
+                    $observation = new Observation;
+                    $observation->test_run_id = $test_run_id;
+                    $observation->test_plan_metric_id = $test_plan_metric->test_plan_metric_id;
+                    $observation->min_value = $test_plan_metric->min_value;
+                    $observation->is_min_value_inclusive = $test_plan_metric->is_min_value_inclusive;
+                    $observation->max_value = $test_plan_metric->max_value;
+                    $observation->is_max_value_inclusive = $test_plan_metric->is_max_value_inclusive;
+                    $observation->is_nullable = $test_plan_metric->is_nullable;
+                    $observation->save();
                 }
             }
 
@@ -168,29 +158,6 @@ class TestRunController extends Controller
         //
     }
     
-    //TODO: move this to a utility method, because it's duplicated from TestPlanController
-    private function reconstruct_criteria($min_value, $is_min_value_inclusive, $max_value, $is_max_value_inclusive) {
-        if ($min_value != '') {
-            if ($max_value != '') {
-                if ($min_value == $max_value) {
-                    return $min_value;
-                }
-                else {
-                    return ($is_min_value_inclusive ? '[' : '(') . $min_value . '..' . $max_value . ($is_max_value_inclusive ? ']' : ')');
-                }
-            }            
-            else {
-                return '>' . ($is_min_value_inclusive ? '=' : '') . $min_value;
-            }
-        }
-        else {
-            if ($max_value != '') {
-                return '<' . ($is_max_value_inclusive ? '=' : '') . $max_value;
-            }
-        }
-        return '';
-    }
-
     /**
      * Show the form for editing the specified resource.
      *
@@ -203,8 +170,7 @@ class TestRunController extends Controller
             return redirect()->action('TestRunController@index');
         }
         $test_run = 
-            DB::table('test_run')
-            ->join('item', 'item.item_id', '=', 'test_run.item_id')
+            TestRun::join('item', 'item.item_id', '=', 'test_run.item_id')
             ->join('lot', 'lot.lot_id', '=', 'item.lot_id')
             ->join('test_plan', 'test_plan.test_plan_id', '=', 'test_run.test_plan_id')
             ->where('test_run.test_run_id', $id)
@@ -224,12 +190,11 @@ class TestRunController extends Controller
                     'is_min_value_inclusive' => $item->is_min_value_inclusive,
                     'max_value' => $item->max_value,
                     'is_max_value_inclusive' => $item->is_max_value_inclusive,
-                    'criteria' => $this->reconstruct_criteria($item->min_value, $item->is_min_value_inclusive, $item->max_value, $item->is_max_value_inclusive),
+                    'criteria' => $item->reconstructCriteria(),
                     'result_values' => []
                 ];
             },
-            DB::table('observation')            
-                ->join('test_run', 'test_run.test_run_id', '=', 'observation.test_run_id')
+            Observation::join('test_run', 'test_run.test_run_id', '=', 'observation.test_run_id')
                 ->join('test_plan_metric','test_plan_metric.test_plan_metric_id','=','observation.test_plan_metric_id')
                 ->join('metric', 'metric.metric_id', '=', 'test_plan_metric.metric_id')
                 ->where('observation.test_run_id', $id)
@@ -240,8 +205,7 @@ class TestRunController extends Controller
                 ->toArray()
         );            
         $observation_results = 
-            DB::table('observation')
-            ->join('observation_result', 'observation_result.observation_id', '=', 'observation.observation_id')
+            Observation::join('observation_result', 'observation_result.observation_id', '=', 'observation.observation_id')
             ->where('observation.test_run_id', $id)
             ->select('observation_result.observation_id','observation_result.result_value')
             ->get();
@@ -267,29 +231,23 @@ class TestRunController extends Controller
         if (Gate::denies('write-observation')) {
             return redirect()->action('TestRunController@index');
         }
-        $observation_ids = 
-            DB::table('observation')
-            ->where('test_run_id', $id)
-            ->pluck('observation_id');
+        $observation_ids = Observation::where('test_run_id', $id)->pluck('observation_id');
         $observation_result_ids = 
-            DB::table('observation')
-            ->join('observation_result','observation_result.observation_id','=','observation.observation_id')
+            Observation::join('observation_result','observation_result.observation_id','=','observation.observation_id')
             ->where('observation.test_run_id',$id)
             ->pluck('observation_result.observation_result_id');
         DB::transaction(function() use ($observation_ids, $observation_result_ids, $request) {
-            Log::debug('Deleting ' . strval(count($observation_result_ids)) . ' results');
-            DB::table('observation_result')->whereIn('observation_result_id', $observation_result_ids)->delete();
+            ObservationResult::whereIn('observation_result_id', $observation_result_ids)->delete();
             foreach($observation_ids as $observation_id) {                
                 $values = explode(' ', $request->input('observation-results-' . $observation_id));                
                 foreach ($values as $value) {
                     if ($value == '') {
                         continue;
                     }
-                    DB::table('observation_result')
-                        ->insert([
-                            'observation_id' => $observation_id,
-                            'result_value' => $value
-                        ]);
+                    $observationResult = new ObservationResult;
+                    $observationResult->observation_id = $observation_id;
+                    $observationResult->result_alue = $value;
+                    $observationResult->save();
                 }
             }
         });        

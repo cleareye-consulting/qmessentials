@@ -15,6 +15,9 @@ class CreateObservationResultsTable extends Migration
     {
         Schema::create('observation_results', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->int('observation_id');
+            $table->foreign('observation_id')->references('id')->on('observations');
+            $table->double('result_value')->nullable();
             $table->timestamps();
         });
     }

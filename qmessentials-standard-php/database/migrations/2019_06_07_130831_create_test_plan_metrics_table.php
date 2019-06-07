@@ -16,9 +16,9 @@ class CreateTestPlanMetricsTable extends Migration
         Schema::create('test_plan_metrics', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->int('test_plan_id');
-            $table->foreign('test_plan_id')->references('id')->on('test_plan');
+            $table->foreign('test_plan_id')->references('id')->on('test_plans');
             $table->int('metric_id');
-            $table->foreign('metric_id')->references('id')->on('metric');
+            $table->foreign('metric_id')->references('id')->on('metrics');
             $table->int('sort_order');
             $table->string('qualifier', 100)->nullable();
             $table->string('unit', 100)->nullable();

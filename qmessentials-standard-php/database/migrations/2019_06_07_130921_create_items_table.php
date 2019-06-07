@@ -15,6 +15,9 @@ class CreateItemsTable extends Migration
     {
         Schema::create('items', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('item_number', 500);
+            $table->int('lot_id');
+            $table->foreign('lot_id')->references('id')->on('lots');
             $table->timestamps();
         });
     }
