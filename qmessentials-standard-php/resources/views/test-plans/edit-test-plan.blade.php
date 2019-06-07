@@ -11,6 +11,7 @@
         <input type="hidden" name="_method" value="PUT">
         <input type="hidden" name="test_plan_metric_id_under_edit" value="{{$test_plan_metric_id_under_edit}}"/>
         <input type="hidden" name="is_active_original_value" id="is_active_original_value" value="{{$test_plan->is_active}}"/>
+        <input type="hidden" name="test_plan_metric_id_to_delete" value=""/>
         <div class="form-group">
             <label class="control-label" for="test_plan_name">Name</label>
             <input class="form-control" type="text" id="test_plan_name" name="test_plan_name" placeholder="Name" value="{{$test_plan->test_plan_name}}" disabled/>
@@ -33,7 +34,6 @@
                     <th width="11%">Criteria</th>
                     <th width="16">Units</th>
                     <th width="5%">Nullable</th>                    
-                    <th width="4%">Active</th>
                     <th width="5%">&nbsp;</th>
                 </tr>
             </thead>
@@ -74,7 +74,6 @@
                         </select>
                     </td>
                     <td><input type="checkbox" id="edited_metric_is_nullable" name="edited_metric_is_nullable" {{$test_plan_metric->is_nullable ? 'checked' : ''}}/></td>
-                    <td><input type="checkbox" id="edited_metric_is_active" name="edited_metric_is_active" {{$test_plan_metric->is_active ? 'checked' : ''}}/></td>
                     <td><button class="btn btn-sm btn-primary">Update</button></td>
                 </tr>
                 @else
@@ -86,9 +85,9 @@
                     <td>{{$test_plan_metric->criteria}}</td>
                     <td>{{$test_plan_metric->unit}}</td>
                     <td>{{$test_plan_metric->is_nullable ? 'Y' : 'N'}}</td>
-                    <td>{{$test_plan_metric->is_active ? 'Y' : 'N'}}</td>
                     <td>
                         <a class="btn btn-sm btn-outline-primary" href="/test-plans/{{$test_plan_metric->test_plan_id}}/edit/{{$test_plan_metric->test_plan_metric_id}}">Edit</a>
+                        <button type="button" class="btn btn-sm btn-outline-danger test-plan-metric-delete" data-test-plan-metric-id="{{$test_plan_metric->test_plan_metric_id}}">Delete</button>
                     </td>
                 </tr>
                 @endif
@@ -122,7 +121,6 @@
                     <td><input type="text" class="form-control" id="new_metric_criteria" name="new_metric_criteria"/></td>
                     <td><select class="form-control" id="new_metric_unit" name="new_metric_unit"></select></td>
                     <td><input type="checkbox" id="new_metric_is_nullable" name="new_metric_is_nullable"/></td>
-                    <td><input type="checkbox" id="new_metric_is_active" name="new_metric_is_active" checked/></td>
                     <td><button class="btn btn-sm btn-outline-primary">Add</button></td>
                 </tr>
                 @endif
@@ -163,6 +161,10 @@
             $('#is_active').click(() => {                
                 $('#submitButton').prop('disabled', $('#is_active').is('checked') === $('#is_active_original_value').val());
             });            
+            $('button.test-plan-metric-delete').click(() => {
+                $('#test_plan_metric_id_to_delete').val($(this).data('testPlanMetricId'));
+                $(this).parents('form').submit();
+            });
         });
     </script>
 @endsection

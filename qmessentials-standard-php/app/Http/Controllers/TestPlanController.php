@@ -216,6 +216,10 @@ class TestPlanController extends Controller
             $this->renumber_test_plan_metrics($request->test_plan_id, $request->edited_metric_sort_order, $test_plan_metric_id_under_edit);
             return redirect()->action('TestPlanController@edit', ['id' => $id]);
         }
+        else if ($request->test_plan_metric_id_to_delete != '') {
+            TestPlanMetric::destroy($request->test_plan_metric_id_to_delete);
+            return redirect()->action('TestPlanController@edit', ['id' => $id]);
+        }
         return redirect()->action('TestPlanController@index');
     }
 
