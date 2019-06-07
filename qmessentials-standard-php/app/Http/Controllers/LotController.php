@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Item;
+use App\Lot;
+use App\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -21,8 +24,7 @@ class LotController extends Controller
      */
     public function index()
     {
-        $lots = DB::table('lot')
-            ->join('product','lot.product_id','=','product.product_id')
+        $lots = Lot::join('product','lot.product_id','=','product.product_id')
             ->select('lot.lot_id', 'lot.lot_number', 'product.product_name', 'lot.customer_name', 'lot.created_date')
             ->get();
         return view('lots/lots', ['lots' => $lots]);
@@ -38,7 +40,7 @@ class LotController extends Controller
         if (Gate::denies('write-lot')) {
             return redirect()->action('LotController@index');
         }
-        $products = DB::table('product')->get();
+        $products = Product::where('is_active', true)->get();
         return view('lots/create-lot', ['products'=>$products]);
     }
 
@@ -53,13 +55,11 @@ class LotController extends Controller
         if (Gate::denies('write-lot')) {
             return redirect()->action('LotController@index');
         }
-        DB::table('lot')
-            ->insert([
-                'lot_number' => $request->input('lot_number'),
-                'product_id' => $request->input('product_id'),
-                'customer_name' => $request->input('customer_name'),
-                'created_date' => date('Y-m-d H:i:s')
-            ]);
+        $lot = new Lot;
+        $lot->lot_number = $request->lot_number;
+        $lot->product_id = $request->product_id;
+        $lot->customer_name = $request->customer_name;
+        $lot->save();
         return redirect()->action('LotController@index');
     }
 
@@ -85,13 +85,11 @@ class LotController extends Controller
         if (Gate::denies('write-lot')) {
             return redirect()->action('LotController@index');
         }
-        $lot = DB::table('lot')
-            ->where('lot_id', $id)
+        $lot = Lot::where('lot_id', $id)
             ->select('lot_id','lot_number','product_id','customer_name','created_date')
             ->first();
-        $products = DB::table('product')->get();
-        $items = DB::table('item')
-            ->where('lot_id', $id)
+        $products = Product::where('is_active', true)->get();
+        $items = Item::where('lot_id', $id)
             ->select('item_number', 'created_date')
             ->get();
         return view('lots/edit-lot', ['lot' => $lot, 'products' => $products, 'items' => $items]);
@@ -109,19 +107,15 @@ class LotController extends Controller
         if (Gate::denies('write-lot')) {
             return redirect()->action('LotController@index');
         }
-        DB::table('lot')
-            ->where('lot_id', $id)
-            ->update([
-                'product_id' => $request->input('product_id'),
-                'customer_name' => $request->input('customer_name')
-            ]);
-        if (!is_null($request->input('new_item_number'))) {
-            DB::table('item')
-                ->insert([
-                    'item_number' => $request->input('new_item_number'),
-                    'lot_id' => $id,
-                    'created_date' => date('Y-m-d H:i:s')
-                ]);
+        $lot = Lot::find($id);
+        $lot->product_id = $request->product_id;
+        $lot->customer_name = $request->customer_name;
+        $lot->save();        
+        if (!is_null($request->new_item_number)) {
+            $item = new Item;
+            $item->item_number = $request->new_item_number;
+            $item->lot_id = $id;
+            $item->save();
             return redirect()->action('LotController@edit', ['id' => $id]);
         }
         return redirect()->action('LotController@index');
