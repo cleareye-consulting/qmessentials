@@ -39,18 +39,18 @@ class ReportController extends Controller
 
     public function resultsByLot($lot_id = NULL) {
         $results = NULL;
-        $lots = DB::table('lot')->select('lot_id','lot_number')->get();
+        $lots = DB::table('lots')->select('lot_id','lot_number')->get();
         if (!is_null($lot_id)) {
-            $lot = DB::table('lot')->where('lot_id', $lot_id)->first();
-            $items = DB::table('item')->where('lot_id', $lot_id)->get();
-            $product = DB::table('product')->where('product_id', $lot->product_id)->first();
+            $lot = DB::table('lots')->where('lot_id', $lot_id)->first();
+            $items = DB::table('items')->where('lot_id', $lot_id)->get();
+            $product = DB::table('products')->where('product_id', $lot->product_id)->first();
             $metrics = 
-                DB::table('product_test_plan')
-                ->join('test_plan','test_plan.test_plan_id','=','product_test_plan.test_plan_id')
-                ->join('test_plan_metric','test_plan_metric.test_plan_id','=','test_plan.test_plan_id')
-                ->join('metric','metric.metric_id','=','test_plan_metric.metric_id')
-                ->where([['product_test_plan.product_id',$lot->product_id],['test_plan_metric.is_active',true]])
-                ->select('test_plan_metric.test_plan_metric_id', 'metric.metric_name','test_plan_metric.qualifier','test_plan_metric.unit',
+                DB::table('product_test_plans')
+                ->join('test_plans','test_plans.test_plan_id','=','product_test_plans.test_plan_id')
+                ->join('test_plan_metrics','test_plan_metrics.test_plan_id','=','test_plans.test_plan_id')
+                ->join('metrics','metric.metric_id','=','test_plan_metric.metric_id')
+                ->where([['product_test_plans.product_id',$lot->product_id],['test_plan_metric.is_active',true]])
+                ->select('test_plan_metrics.test_plan_metric_id', 'metric.metric_name','test_plan_metric.qualifier','test_plan_metric.unit',
                     'test_plan_metric.is_nullable', 'test_plan_metric.min_value', 'test_plan_metric.is_min_value_inclusive',
                     'test_plan_metric.max_value','test_plan_metric.is_max_value_inclusive')
                 ->get();            
