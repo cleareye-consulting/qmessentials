@@ -15,10 +15,10 @@ class CreateMetricMethodologyReferencesTable extends Migration
     {
         Schema::create('metric_methodology_references', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('metric_id');
+            $table->bigInteger('metric_id')->unsigned();  
             $table->foreign('metric_id')->references('id')->on('metrics');
             $table->string('methodology_reference', 100);
-            $table->int('sort_order');
+            $table->integer('sort_order');
             $table->timestamps();
         });
     }

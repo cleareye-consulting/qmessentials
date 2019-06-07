@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\User;
+use App\UserRole;
+use App\Role;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
@@ -67,37 +69,38 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('read-aggregate-data', function($user) {
             return $this->isUserInRole($user, ['Quality Manager']);
         });
-
+        $this->bootstrapRoles();
         $this->bootstrapAdminUser();
 
     }
 
     private function isUserInRole($user, $role_names) {
-        return DB::table('user_role')
-            ->join('role','role.role_id','=','user_role.role_id')
-            ->where('user_role.user_id', $user->id)
-            ->whereIn('role.role_name', $role_names)
+        return Users::join('roles','roles.id','=','user_roles.role_id')
+            ->where('user_roles.user_id', $user->id)
+            ->whereIn('roles.role_name', $role_names)
             ->first() != NULL;
     }
 
+    private function bootstrapRoles() {
+        Role::firstOrCreate(['role_name'=>'Administrator']);
+        Role::firstOrCreate(['role_name'=>'Analyst']);
+        Role::firstOrCreate(['role_name'=>'Lead Person']);
+        Role::firstOrCreate(['role_name'=>'Quality Manager']);
+        Role::firstOrCreate(['role_name'=>'Technician']);
+    }
+
     private function bootstrapAdminUser() {
-        $admin_user_exists = 
-            DB::table('user_role')
-            ->join('role','role.role_id','=','user_role.role_id')
-            ->where('role.role_name','Administrator')
-            ->first() != NULL;
-        if (!$admin_user_exists) {
-            Log::warn('Bootstrapping admin user');
-            $default_admin = User::create([
+        $adminRoleId = Role::where('role_name', 'Administrator')->value('id');
+        $adminUserExists = UserRole::where('role_id', $adminRoleId)->first() != NULL;
+        if (!$adminUserExists) {
+            $defaultAdmin = User::create([
                 'name' => 'administrator',
                 'password' => Hash::make('tempAdminPassword000!!!')            
             ]);        
-            $administrator_role_id = DB::table('role')->where('role_name','Administrator')->value('role_id');            
-            DB::table('user_role')
-                ->insert([
-                    'user_id' => $default_admin->id,
-                    'role_id' => $administrator_role_id
-                ]);            
+            UserRole::create([
+                'user_id' => $defaultAdmin->id,
+                'role_id' => $adminRoleId
+            ]);            
         }
     }
 

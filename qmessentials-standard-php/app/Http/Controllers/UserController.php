@@ -38,8 +38,8 @@ class UserController extends Controller
             DB::table('users')->get()->toArray()
         );
         $user_roles = 
-            UserRole::join('role','role.role_id','=','user_role.role_id')
-            ->select('user_role.user_id','role.role_name')
+            UserRole::all()->join('roles','roles.role_id','=','user_roles.role_id')
+            ->select('user_roles.user_id','role.role_name')
             ->get();
         foreach ($user_roles as $user_role) {
             foreach ($users as $user) {
@@ -114,9 +114,9 @@ class UserController extends Controller
         $user = DB::table('users')->where('id', $id)->first();
         $user_roles = 
             UserRole::all()
-            ->join('role','role.role_id','=','user_role.role_id')
-            ->where('user_role.user_id', $id)
-            ->pluck('role.role_id')
+            ->join('roles','roles.role_id','=','user_roles.role_id')
+            ->where('user_roles.user_id', $id)
+            ->pluck('roles.role_id')
             ->toArray();
         $roles = Role::all();
         return view('users/edit-user', ['user' => $user, 'user_roles' => $user_roles, 'roles' => $roles]);

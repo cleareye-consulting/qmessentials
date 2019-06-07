@@ -16,7 +16,7 @@ class CreateLotsTable extends Migration
         Schema::create('lots', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('lot_number', 100)->unique();
-            $table->int('product_id');
+            $table->bigInteger('product_id')->unsigned();
             $table->foreign('product_id')->references('id')->on('products');
             $table->string('customer_name', 500)->nullable();
             $table->timestamps();

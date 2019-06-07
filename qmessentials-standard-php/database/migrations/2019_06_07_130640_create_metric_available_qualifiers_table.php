@@ -15,11 +15,14 @@ class CreateMetricAvailableQualifiersTable extends Migration
     {
         Schema::create('metric_available_qualifiers', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('metric_id');
-            $table->foreign('metric_id')->references('id')->on('metrics');
+            $table->bigInteger('metric_id')->unsigned();            
             $table->string('qualifier', 100);
-            $table->int('sort_order');
+            $table->integer('sort_order');
             $table->timestamps();
+        });
+
+        Schema::table('metric_available_qualifiers', function(Blueprint $table) {
+            $table->foreign('metric_id')->references('id')->on('metrics');
         });
     }
 

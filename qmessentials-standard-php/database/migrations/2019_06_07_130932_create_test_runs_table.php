@@ -15,10 +15,10 @@ class CreateTestRunsTable extends Migration
     {
         Schema::create('test_runs', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->int('item_id');
+            $table->bigInteger('item_id')->unsigned();
             $table->foreign('item_id')->references('id')->on('items');
-            $table->int('test_plan_id');
-            $table->foreign('test_plan_id')->refernces('id')->on('test_plans');
+            $table->bigInteger('test_plan_id')->unsigned();
+            $table->foreign('test_plan_id')->references('id')->on('test_plans');
             $table->timestamps();
         });
     }
