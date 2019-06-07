@@ -9,10 +9,6 @@ class User extends Authenticatable
 {
     use SoftDeletes;
 
-    public function userRoles() {
-        return $this->hasMany('UserRole');
-    }
-
     /**
      * The attributes that are mass assignable.
      *

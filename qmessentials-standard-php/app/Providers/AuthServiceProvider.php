@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-use App\User;
-use App\UserRole;
-use App\Role;
+use \App\User;
+use \App\UserRole;
+use \App\Role;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
@@ -74,11 +74,10 @@ class AuthServiceProvider extends ServiceProvider
 
     }
 
-    private function isUserInRole($user, $role_names) {
-        return Users::join('roles','roles.id','=','user_roles.role_id')
-            ->where('user_roles.user_id', $user->id)
-            ->whereIn('roles.role_name', $role_names)
-            ->first() != NULL;
+    private function isUserInRole($user, $roleNames) {
+        $roleIdsForUser = UserRole::where('user_id', $user->id)->pluck('role_id')->toArray();
+        $roleIdsRequired = Role::whereIn('role_name', $roleNames)->pluck('id')->toArray();
+        return count(array_intersect($roleIdsForUser, $roleIdsRequired)) > 0;
     }
 
     private function bootstrapRoles() {
@@ -89,7 +88,7 @@ class AuthServiceProvider extends ServiceProvider
         Role::firstOrCreate(['role_name'=>'Technician']);
     }
 
-    private function bootstrapAdminUser() {
+    private function bootstrapAdminUser() {        
         $adminRoleId = Role::where('role_name', 'Administrator')->value('id');
         $adminUserExists = UserRole::where('role_id', $adminRoleId)->first() != NULL;
         if (!$adminUserExists) {
