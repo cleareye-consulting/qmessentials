@@ -37,14 +37,6 @@
             <label class="control-label" for="methodology_references">Methodology References</label>
             <textarea class="form-control" type="text" id="methodology_references" name="methodology_references">{{implode("\n", $metric->methodology_references)}}</textarea>
         </div>      
-        <div class="form-group">        
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {{$metric->is_active ? 'checked="checked"' : ''}}>
-                <label class="form-check-label" for="is_active">
-                    Active
-                </label>
-            </div>
-        </div>
         <div class="form-group">
             <button class="btn btn-primary">Save Changes</button>
             <a class="btn btn-outline-secondary" href="/metrics">Cancel</a>
