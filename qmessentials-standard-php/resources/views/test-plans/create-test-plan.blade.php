@@ -22,7 +22,7 @@
         </div>
         <div class="form-group">
             <button class="btn btn-primary">Add Test Plan</button>
-            <a class="btn btn-outline-primary" href="/test-plans">Cancel</a>
+            <a class="btn btn-outline-secondary" href="/test-plans">Cancel</a>
         </div>
     </form>
     </div>

@@ -41,7 +41,7 @@ function getRandomPassword() {
         </div>
         <div class="form-group">
             <button class="btn btn-primary">Add User</button>
-            <a class="btn btn-outline-primary" href="/users">Cancel</a>
+            <a class="btn btn-outline-secondary" href="/users">Cancel</a>
         </div>
     </form>
     </div>

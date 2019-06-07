@@ -128,7 +128,7 @@
         </table>
         <div class="form-group">
             <button class="btn btn-primary" id="submitButton" disabled>Save Changes</button>
-            <a class="btn btn-outline-primary" href="/test-plans">Return to List</a>
+            <a class="btn btn-outline-secondary" href="/test-plans">Return to List</a>
         </div>
     </form>
     </div>

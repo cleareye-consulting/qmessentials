@@ -26,7 +26,7 @@
         </div>
         <div class="form-group">
             <button class="btn btn-primary">Add Lot</button>
-            <a class="btn btn-light" href="/lots">Cancel</a>
+            <a class="btn btn-outline-secondary" href="/lots">Cancel</a>
         </div>
     </form>
     </div>
