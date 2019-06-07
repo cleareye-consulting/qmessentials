@@ -127,7 +127,7 @@
             </tbody>
         </table>
         <div class="form-group">
-            <button class="btn btn-primary" id="submitButton" disabled>Save Changes</button>
+            <button class="btn btn-primary" id="submitButton" disabled>Metric Changes Saved Automatically</button>
             <a class="btn btn-outline-secondary" href="/test-plans">Return to List</a>
         </div>
     </form>
@@ -158,9 +158,6 @@
                     $('#new_metric_sort_order').val(newValue);
                 }
             });
-            $('#is_active').click(() => {                
-                $('#submitButton').prop('disabled', $('#is_active').is('checked') === $('#is_active_original_value').val());
-            });            
             $('button.test-plan-metric-delete').click(() => {
                 $('#test_plan_metric_id_to_delete').val($(this).data('testPlanMetricId'));
                 $(this).parents('form').submit();

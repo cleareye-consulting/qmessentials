@@ -14,13 +14,6 @@
             <label class="control-label" for="product_name">Name</label>
             <input class="form-control" type="text" id="product_name" name="product_name" placeholder="Name" value="{{$product->product_name}}" disabled/>
         </div>
-        <div class="form-group">        
-            <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {{$product->is_active ? 'checked="checked"' : ''}}>
-            <label class="form-check-label" for="is_active">
-                Active
-            </label>
-        </div>
         <table class="table">
             <thead>
                 <tr>
@@ -70,7 +63,7 @@
         </table>
         </div>
         <div class="form-group">
-            <button class="btn btn-primary">Save Changes</button>
+            <button class="btn btn-primary" disabled>Test Plan Changes Saved Automatically</button>
             <a class="btn btn-outline-secondary" href="/products">Return to List</a>
         </div>
     </form>
