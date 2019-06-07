@@ -2,12 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\TestPlan;
-use App\TestPlanMetric;
-use App\Metric;
-use App\MetricAvailableQualifier;
-use App\MetricAvailableUnit;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -27,7 +21,7 @@ class TestPlanController extends Controller
      */
     public function index()
     {
-        $test_plans = TestPlan::all();
+        $test_plans = \App\TestPlan::all();
         return view('test-plans/test-plans', ['test_plans' => $test_plans]);
     }
 
@@ -43,7 +37,7 @@ class TestPlanController extends Controller
         }
         return view(
             'test-plans/create-test-plan', 
-            ['existing_test_plans'=>DB::table('test_plan')->where('is_active',true)->select('test_plan_id','test_plan_name')->get()]
+            ['existing_test_plans'=>\App\TestPlan::all()]
         );
     }
 
@@ -59,13 +53,13 @@ class TestPlanController extends Controller
             return redirect()->action('TestPlanController@index');
         }
         DB::transaction(function() use ($request) {
-            $testPlan = new TestPlan;
+            $testPlan = new \App\TestPlan;
             $testPlan->test_plan_name = $request->test_plan_name;
             $testPlan->save();
             if (!is_null($request->duplicate_of_plan_id)) {
-                $originalMetrics =  TestPlanMetric::where('test_plan_id', $duplicate_of_plan_id)->get();    
+                $originalMetrics =  \App\TestPlanMetric::where('test_plan_id', $duplicate_of_plan_id)->get();    
                 foreach($originalMetrics as $originalMetric) {
-                    $duplicateMetric = new TestPlanMetric;
+                    $duplicateMetric = new \App\TestPlanMetric;
                     $duplicateMetric->test_plan_id = $testPlan->id;
                     $duplicateMetric->metric_id = $original_metric->metric_id;
                     $duplicateMetric->sort_order = $original_metric->sort_order;
@@ -106,15 +100,15 @@ class TestPlanController extends Controller
         if (Gate::denies('write-test-plan')) {
             return redirect()->action('TestPlanController@index');
         }
-        $test_plan = TestPlan::find($id);
-        $test_plan_metrics = TestPlanMetric::where('test_plan_id', $id);
+        $test_plan = \App\TestPlan::find($id);
+        $test_plan_metrics = \App\TestPlanMetric::where('test_plan_id', $id)->get()->toArray();
         $availableQualifiersForEdit = NULL;
         $availableUnitsForEdit = NULL;
-        $metrics = Metrics::all();
+        $metrics = \App\Metric::all();
         if (!is_null($test_plan_metric_id_under_edit)) {
-            $metric_id = TestPlanMetric::where('test_plan_metric_id',$test_plan_metric_id_under_edit)->value('metric_id');
-            $availableQualifiersForEdit = MetricAvailableQualifier::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('qualifier');
-            $availableUnitsForEdit = MetricAvailableUnit::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('unit');
+            $metric_id = \App\TestPlanMetric::where('test_plan_metric_id',$test_plan_metric_id_under_edit)->value('metric_id');
+            $availableQualifiersForEdit = \App\MetricAvailableQualifier::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('qualifier')->toArray();
+            $availableUnitsForEdit = \App\MetricAvailableUnit::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('unit')->toArray();
         }
         return view('test-plans/edit-test-plan', 
             [
@@ -159,12 +153,11 @@ class TestPlanController extends Controller
 
     private function renumber_test_plan_metrics($test_plan_id, $new_number, $new_number_holder) {
         $number_holder_count = 
-            DB::table('test_plan_metric')->where([['test_plan_id', $test_plan_id],['sort_order', $new_number]])->count();
+            \App\TestPlanMetric::where([['test_plan_id', $test_plan_id],['sort_order', $new_number]])->count();
         if ($number_holder_count == 1) {            
             return; //no need to do anything because number was already vacant
         }
-        DB::table('test_plan_metric')
-            ->where([['test_plan_id', $test_plan_id],['sort_order', '>=' , $new_number],['test_plan_metric_id', '!=', $new_number_holder]])
+        \App\TestPlanMetric::where([['test_plan_id', $test_plan_id],['sort_order', '>=' , $new_number],['id', '!=', $new_number_holder]])
             ->update(['sort_order' => DB::raw('sort_order + 1')]);
     }
 
@@ -182,7 +175,7 @@ class TestPlanController extends Controller
         }
         if ($request->input('new_metric_id') != 0) {            
             $criteria = $this->parse_criteria($request->new_metric_criteria ?? 'Any');
-            $newTestPlanMetric = new TestPlanMetric;
+            $newTestPlanMetric = new \App\TestPlanMetric;
             $newTestPlanMetric->test_plan_id = $request->test_plan_id;
             $newTestPlanMetric->metric_id = $request->new_metric_id;
             $newTestPlanMetric->sort_order = $request->new_metric_sort_order;
@@ -200,7 +193,7 @@ class TestPlanController extends Controller
         }
         else if ($request->test_plan_metric_id_under_edit != '') {
             $criteria = $this->parse_criteria($request->edited_metric_criteria ?? 'Any');
-            $editedTestPlanMetric = TestPlanMetric::find($request->test_plan_metric_id_under_edit);
+            $editedTestPlanMetric = \App\TestPlanMetric::find($request->test_plan_metric_id_under_edit);
             $editedTestPlanMetric->test_plan_id = $request->test_plan_id;
             $editedTestPlanMetric->metric_id = $request->edited_metric_id;
             $editedTestPlanMetric->sort_order = $request->edited_metric_sort_order;

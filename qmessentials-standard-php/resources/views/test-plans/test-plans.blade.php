@@ -15,7 +15,7 @@
             <tbody>
             @foreach($test_plans as $test_plan) 
                 <tr>
-                    <td><a href="/test-plans/{{$test_plan->test_plan_id}}/edit">{{$test_plan->test_plan_name}}</a></td>
+                    <td><a href="/test-plans/{{$test_plan->id}}/edit">{{$test_plan->test_plan_name}}</a></td>
                 </tr>
             @endforeach
             </tbody>

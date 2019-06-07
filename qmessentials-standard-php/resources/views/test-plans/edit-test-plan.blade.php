@@ -5,9 +5,9 @@
 @section('content')    
     <div class="container">
     <h2 class="subtitle">Edit Test Plan</h2>  
-    <form class="form" action="/test-plans/{{$test_plan->test_plan_id}}" method="POST">
+    <form class="form" action="/test-plans/{{$test_plan->id}}" method="POST">
         {{csrf_field()}}
-        <input type="hidden" id="test_plan_id" name="test_plan_id" value="{{$test_plan->test_plan_id}}"/>
+        <input type="hidden" id="test_plan_id" name="test_plan_id" value="{{$test_plan->id}}"/>
         <input type="hidden" name="_method" value="PUT">
         <input type="hidden" name="test_plan_metric_id_under_edit" value="{{$test_plan_metric_id_under_edit}}"/>
         <input type="hidden" name="is_active_original_value" id="is_active_original_value" value="{{$test_plan->is_active}}"/>
@@ -15,14 +15,6 @@
         <div class="form-group">
             <label class="control-label" for="test_plan_name">Name</label>
             <input class="form-control" type="text" id="test_plan_name" name="test_plan_name" placeholder="Name" value="{{$test_plan->test_plan_name}}" disabled/>
-        </div>
-        <div class="form-group">        
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {{$test_plan->is_active ? 'checked="checked"' : ''}}>
-                <label class="form-check-label" for="is_active">
-                    Active
-                </label>
-            </div>
         </div>
         <table class="table">
             <thead>
@@ -99,7 +91,7 @@
                         <select class="form-control" id="new_metric_id" name="new_metric_id">
                             <option value="0">Select a metric...</option>
                         @foreach ($metrics as $metric) 
-                            <option value="{{$metric->metric_id}}">{{$metric->metric_name}}</option>
+                            <option value="{{$metric->id}}">{{$metric->metric_name}}</option>
                         @endforeach
                         </select>
                     </td>
@@ -127,7 +119,6 @@
             </tbody>
         </table>
         <div class="form-group">
-            <button class="btn btn-primary" id="submitButton" disabled>Metric Changes Saved Automatically</button>
             <a class="btn btn-outline-secondary" href="/test-plans">Return to List</a>
         </div>
     </form>
