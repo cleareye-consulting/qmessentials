@@ -84,8 +84,7 @@ class ProductController extends Controller
         $test_plans = TestPlan::all();
         return view(
             'products/edit-product', [
-                'product' => $product, 
-                'product_test_plans' => $product->testPlans(),
+                'product' => $product,
                 'test_plans' => $test_plans,
                 'product_test_plan_id_under_edit' => $product_test_plan_id_under_edit
             ]

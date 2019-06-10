@@ -17,8 +17,8 @@ class TestPlanMetric extends Model
         return $this->belongsTo('App\Metric');
     }
 
-    public static function reconstructCriteria(float $min_value = NULL, boolean $is_min_value_inclusive = NULL, 
-            float $max_value = NULL, boolean $is_max_value_inclusive = NULL) {
+    public static function reconstructCriteria($min_value = NULL, $is_min_value_inclusive = NULL, 
+            $max_value = NULL, $is_max_value_inclusive = NULL) {
         if ($min_value != '') {
             if ($max_value != '') {
                 if ($min_value == $max_value) {

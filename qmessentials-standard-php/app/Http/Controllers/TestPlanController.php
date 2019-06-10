@@ -109,10 +109,24 @@ class TestPlanController extends Controller
             $availableQualifiersForEdit = \App\MetricAvailableQualifier::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('qualifier')->toArray();
             $availableUnitsForEdit = \App\MetricAvailableUnit::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('unit')->toArray();
         }
-        Log::debug('$test_plan->testPlanMetrics()->count(): ' . $test_plan->testPlanMetrics()->count());
+        $test_plan_metrics = $test_plan->testPlanMetrics()->get()->map(function($tpm) {            
+            return (object) [
+                'id' => $tpm->id,
+                'test_plan_id' => $tpm->test_plan_id,
+                'metric_id' => $tpm->metric_id,
+                'metric_name' => $tpm->metric->metric_name,
+                'sort_order' => $tpm->sort_order,
+                'qualifier' => $tpm->qualifier,
+                'unit' => $tpm->unit,
+                'usage_code' => $tpm->usage_code,
+                'criteria' => \App\TestPlanMetric::reconstructCriteria($tpm->min_value, $tpm->is_min_value_inclusive, $tpm->max_value, $tpm->is_max_value_inclusive),
+                'is_nullable' => $tpm->is_nullable
+            ];
+        });
         return view('test-plans/edit-test-plan', 
             [
                 'test_plan' => $test_plan, 
+                'test_plan_metrics' => $test_plan_metrics,
                 'metrics' => $metrics,
                 'test_plan_metric_id_under_edit' => $test_plan_metric_id_under_edit,
                 'available_qualifiers_for_edit' => $availableQualifiersForEdit,

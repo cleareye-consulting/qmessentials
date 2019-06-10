@@ -30,7 +30,7 @@
                 </tr>
             </thead>
             <tbody>
-            @foreach($test_plan->testPlanMetrics()->orderBy('sort_order')->get() as $test_plan_metric)
+            @foreach($test_plan_metrics as $test_plan_metric)
                 @if ($test_plan_metric->id == $test_plan_metric_id_under_edit)
                 <tr>
                     <td><input type="text" class="form-control" id="edited_metric_sort_order" name="edited_metric_sort_order" value="{{$test_plan_metric->sort_order}}"/></td>
