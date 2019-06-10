@@ -9,6 +9,7 @@ use App\TestPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -81,11 +82,13 @@ class ProductController extends Controller
             return redirect()->action('ProductController@index');
         }
         $product = Product::find($id);
+        $product_test_plans = $product->productTestPlans;
         $test_plans = TestPlan::all();
         return view(
             'products/edit-product', [
                 'product' => $product,
                 'test_plans' => $test_plans,
+                'product_test_plans' => $product_test_plans,
                 'product_test_plan_id_under_edit' => $product_test_plan_id_under_edit
             ]
         );
@@ -107,7 +110,7 @@ class ProductController extends Controller
             $next_sequence_number = (ProductTestPlan::where('product_id', $id)->max('test_plan_sequence_number') ?? 0) + 1;
             $newProductTestPlan = new ProductTestPlan;
             $newProductTestPlan->product_id = $id;
-            $newProductTestPlan->test_plan_seqence_number = $next_sequence_number;
+            $newProductTestPlan->test_plan_sequence_number = $next_sequence_number;
             $newProductTestPlan->test_plan_id = $request->new_product_test_plan_id;
             $newProductTestPlan->is_required = $request->new_product_test_plan_is_required == 'on';
             $newProductTestPlan->save();
