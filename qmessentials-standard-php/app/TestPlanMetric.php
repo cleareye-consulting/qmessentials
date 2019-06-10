@@ -9,6 +9,14 @@ class TestPlanMetric extends Model
 {
     use SoftDeletes;
 
+    public function testPlan() {
+        return $this->belongsTo('App\TestPlan');
+    }
+
+    public function metric() {
+        return $this->belongsTo('App\Metric');
+    }
+
     public static function reconstructCriteria(float $min_value = NULL, boolean $is_min_value_inclusive = NULL, 
             float $max_value = NULL, boolean $is_max_value_inclusive = NULL) {
         if ($min_value != '') {

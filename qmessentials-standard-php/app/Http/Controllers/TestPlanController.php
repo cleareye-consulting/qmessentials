@@ -100,33 +100,7 @@ class TestPlanController extends Controller
         if (Gate::denies('write-test-plan')) {
             return redirect()->action('TestPlanController@index');
         }
-        $test_plan = \App\TestPlan::find($id);
-        $test_plan_metrics = array_map(            
-            function($tpm) {
-                return (object) [
-                    'id' => $tpm->id,
-                    'metric_id' => $tpm->metric_id,
-                    'metric_name' => $tpm->metric_name,
-                    'test_plan_id' => $tpm->test_plan_id,
-                    'sort_order' => $tpm->sort_order,
-                    'qualifier' => $tpm->qualifier,
-                    'unit' => $tpm->unit,
-                    'usage_code' => $tpm->usage_code,
-                    'criteria' => \App\TestPlanMetric::reconstructCriteria($tpm->min_value, $tpm->is_min_value_inclusive, $tpm->max_value, $tpm->is_max_value_inclusive),
-                    'is_nullable' => $tpm->is_nullable
-                ];
-            },
-            DB::table('test_plan_metrics')
-                ->join('metrics', 'test_plan_metrics.metric_id', '=', 'metrics.id')
-                ->where([['test_plan_metrics.test_plan_id', $id],['test_plan_metrics.deleted_at',NULL]])
-                ->select(['test_plan_metrics.test_plan_id','test_plan_metrics.id','test_plan_metrics.metric_id',
-                    'metrics.metric_name','test_plan_metrics.sort_order','test_plan_metrics.qualifier','test_plan_metrics.unit',
-                    'test_plan_metrics.usage_code','test_plan_metrics.min_value','test_plan_metrics.is_min_value_inclusive',
-                    'test_plan_metrics.max_value','test_plan_metrics.is_max_value_inclusive','test_plan_metrics.is_nullable'])
-                ->orderby('test_plan_metrics.sort_order')
-                ->get()
-                ->toArray()
-        );
+        $test_plan = \App\TestPlan::find($id);        
         $availableQualifiersForEdit = NULL;
         $availableUnitsForEdit = NULL;
         $metrics = \App\Metric::all();
@@ -135,10 +109,10 @@ class TestPlanController extends Controller
             $availableQualifiersForEdit = \App\MetricAvailableQualifier::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('qualifier')->toArray();
             $availableUnitsForEdit = \App\MetricAvailableUnit::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('unit')->toArray();
         }
+        Log::debug('$test_plan->testPlanMetrics()->count(): ' . $test_plan->testPlanMetrics()->count());
         return view('test-plans/edit-test-plan', 
             [
                 'test_plan' => $test_plan, 
-                'test_plan_metrics' => $test_plan_metrics,
                 'metrics' => $metrics,
                 'test_plan_metric_id_under_edit' => $test_plan_metric_id_under_edit,
                 'available_qualifiers_for_edit' => $availableQualifiersForEdit,

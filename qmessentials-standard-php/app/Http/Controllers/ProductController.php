@@ -81,18 +81,11 @@ class ProductController extends Controller
             return redirect()->action('ProductController@index');
         }
         $product = Product::find($id);
-        $product_test_plans = 
-            ProductTestPlan::join('test_plan', 'product_test_plan.test_plan_id', '=', 'test_plan.test_plan_id')
-                ->where('product_test_plan.product_id', $id)
-                ->select(['product_test_plan.product_test_plan_id','product_test_plan.test_plan_sequence_number', 
-                    'product_test_plan.test_plan_id','test_plan.test_plan_name', 'product_test_plan.is_required'])
-                ->orderby('product_test_plan.test_plan_sequence_number')
-                ->get();
         $test_plans = TestPlan::all();
         return view(
             'products/edit-product', [
                 'product' => $product, 
-                'product_test_plans' => $product_test_plans,
+                'product_test_plans' => $product->testPlans(),
                 'test_plans' => $test_plans,
                 'product_test_plan_id_under_edit' => $product_test_plan_id_under_edit
             ]

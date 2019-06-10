@@ -88,7 +88,7 @@ class LotController extends Controller
         $lot = Lot::where('lot_id', $id)
             ->select('lot_id','lot_number','product_id','customer_name','created_date')
             ->first();
-        $products = Product::where('is_active', true)->get();
+        $products = Product::all();
         $items = Item::where('lot_id', $id)
             ->select('item_number', 'created_date')
             ->get();

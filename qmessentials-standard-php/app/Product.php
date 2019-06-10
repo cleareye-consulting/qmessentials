@@ -8,5 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Product extends Model
 {
     use SoftDeletes;
-    public $product_name = '';
+    public function testPlans() {
+        return $this->hasMany('App\TestPlan');
+    }
 }
