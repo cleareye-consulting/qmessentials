@@ -35,7 +35,7 @@ function getRandomPassword() {
             <label class="control-label" for="roles">Roles</label>
             <select class="form-control" name="roles[]" id="roles" multiple size="{{count($roles)}}">
                 @foreach ($roles as $role)
-                <option value="{{$role->role_id}}">{{$role->role_name}}</option>
+                <option value="{{$role->id}}">{{$role->role_name}}</option>
                 @endforeach
             </select>
         </div>

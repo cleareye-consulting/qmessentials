@@ -21,7 +21,7 @@
             <label class="control-label" for="roles">Roles</label>
             <select class="form-control" name="roles[]" id="roles" multiple size="{{count($roles)}}">
                 @foreach ($roles as $role)
-                <option value="{{$role->role_id}}" {{in_array($role->role_id, $user_roles) ? 'selected' : ''}}>{{$role->role_name}}</option>
+                <option value="{{$role->id}}" {{in_array($role->id, $user->roles()->get()->map(function($r) {return $r->id;})->toArray()) ? 'selected' : ''}}>{{$role->role_name}}</option>
                 @endforeach
             </select>
         </div>

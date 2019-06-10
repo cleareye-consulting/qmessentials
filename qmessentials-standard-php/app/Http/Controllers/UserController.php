@@ -26,29 +26,8 @@ class UserController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        $users = array_map(
-            function($item) {
-                return (object) [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'roles' => []
-                ];
-            },
-            DB::table('users')->get()->toArray()
-        );
-        $user_roles = 
-            UserRole::all()->join('roles','roles.role_id','=','user_roles.role_id')
-            ->select('user_roles.user_id','role.role_name')
-            ->get();
-        foreach ($user_roles as $user_role) {
-            foreach ($users as $user) {
-                if ($user->id == $user_role->user_id) {
-                    array_push($user->roles, $user_role->role_name);
-                }
-            }
-        }
-        return view('users/users', ['users' => $users]);
+    {        
+        return view('users/users', ['users' => \App\User::orderby('name')->get()]);
     }
 
     /**
@@ -110,16 +89,10 @@ class UserController extends Controller
     {
         if (Gate::denies('write-user')) {
             return redirect()->action('UserController@index');
-        }
-        $user = DB::table('users')->where('id', $id)->first();
-        $user_roles = 
-            UserRole::all()
-            ->join('roles','roles.role_id','=','user_roles.role_id')
-            ->where('user_roles.user_id', $id)
-            ->pluck('roles.role_id')
-            ->toArray();
+        }        
+        $user = \App\User::find($id);
         $roles = Role::all();
-        return view('users/edit-user', ['user' => $user, 'user_roles' => $user_roles, 'roles' => $roles]);
+        return view('users/edit-user', ['user' => $user, 'roles' => $roles]);
     }
 
     /**
