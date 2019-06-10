@@ -24,9 +24,7 @@ class LotController extends Controller
      */
     public function index()
     {
-        $lots = Lot::join('product','lot.product_id','=','product.product_id')
-            ->select('lot.lot_id', 'lot.lot_number', 'product.product_name', 'lot.customer_name', 'lot.created_date')
-            ->get();
+        $lots = Lot::all();
         return view('lots/lots', ['lots' => $lots]);
     }
 
@@ -40,7 +38,7 @@ class LotController extends Controller
         if (Gate::denies('write-lot')) {
             return redirect()->action('LotController@index');
         }
-        $products = Product::where('is_active', true)->get();
+        $products = Product::all();
         return view('lots/create-lot', ['products'=>$products]);
     }
 
@@ -85,14 +83,9 @@ class LotController extends Controller
         if (Gate::denies('write-lot')) {
             return redirect()->action('LotController@index');
         }
-        $lot = Lot::where('lot_id', $id)
-            ->select('lot_id','lot_number','product_id','customer_name','created_date')
-            ->first();
+        $lot = Lot::find($id);
         $products = Product::all();
-        $items = Item::where('lot_id', $id)
-            ->select('item_number', 'created_date')
-            ->get();
-        return view('lots/edit-lot', ['lot' => $lot, 'products' => $products, 'items' => $items]);
+        return view('lots/edit-lot', ['lot' => $lot, 'products' => $products]);
     }
 
     /**

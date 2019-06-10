@@ -18,10 +18,10 @@
             <tbody>
             @foreach($lots as $lot) 
                 <tr>
-                    <td><a href="/lots/{{$lot->lot_id}}/edit">{{$lot->lot_number}}</a></td>
-                    <td>{{$lot->product_name}}</td>
+                    <td><a href="/lots/{{$lot->id}}/edit">{{$lot->lot_number}}</a></td>
+                    <td>{{$lot->product->product_name}}</td>
                     <td>{{$lot->customer_name}}</td>
-                    <td>{{$lot->created_date}}</td>
+                    <td>{{$lot->created_at}}</td>
                 </tr>
             @endforeach
             </tbody>

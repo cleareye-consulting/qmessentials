@@ -5,9 +5,9 @@
 @section('content')    
     <div class="container">
     <h2 class="subtitle">Edit Lot</h2>  
-    <form class="form" action="/lots/{{$lot->lot_id}}" method="POST">
+    <form class="form" action="/lots/{{$lot->id}}" method="POST">
         {{csrf_field()}}
-        <input type="hidden" id="lot_id" name="lot_id" value="{{$lot->lot_id}}"/>
+        <input type="hidden" id="id" name="id" value="{{$lot->id}}"/>
         <input type="hidden" name="_method" value="PUT">
         <div class="form-group">
             <label class="control-label" for="lot_number">Lot Number</label>
@@ -18,7 +18,7 @@
             <select class="form-control" name="product_id" id="product_id">
                 <option value="0">Select a Product...</option>
                 @foreach ($products as $product)
-                <option value="{{$product->product_id}}" {{$product->product_id == $lot->product_id ? 'selected' : ''}}>{{$product->product_name}}</option>
+                <option value="{{$product->id}}" {{$product->id == $lot->product_id ? 'selected' : ''}}>{{$product->product_name}}</option>
                 @endforeach
             </select>
         </div>
@@ -34,10 +34,10 @@
                 </tr>
             </thead>
             <tbody>
-            @foreach ($items as $item)
+            @foreach ($lot->items as $item)
                 <tr>
                     <td>{{$item->item_number}}</td>
-                    <td>{{$item->created_date}}</td>
+                    <td>{{$item->created_at}}</td>
                 </tr>
             @endforeach
                 <tr>
