@@ -31,7 +31,7 @@
                     @if ($observation->testPlanMetric->metric->has_multiple_results)
                         <textarea class="form-control observation-results" name="observation-results-{{$observation->id}}">{{implode(' ', $observation->observationResults()->get()->map(function($orv) {return $orv->result_value;})->toArray())}}</textarea>
                     @else
-                        <input class="form-control observation-results" name="observation-results-{{$observation->id}}" value="{{$observation->observationResults()->first()->result_value}}"/>
+                        <input class="form-control observation-results" name="observation-results-{{$observation->id}}" value="{{$observation->observationResults()->count() == 1 ? $observation->observationResults()->first()->result_value : ''}}"/>
                     @endif
                     </td>
                 </tr>
@@ -97,6 +97,12 @@
             };
 
             $('.observation-results').change(event => {
+                if (event.target.type == 'text') {
+                    const values = $(event.target).val().split(' ').filter(val => val !== '');
+                    if (values.length > 1) {
+                        $(event.target).val(values[0]);
+                    }
+                }
                 colorizeResult($(event.target));
             });
             

@@ -52,7 +52,7 @@ class TestRunController extends Controller
         if (Gate::denies('write-observation')) {
             return redirect()->action('TestRunController@index');
         }
-        $lots = \App\Lot::all();
+        $lots = \App\Lot::where('lot_status', 'Testing')->get();
         return view('test-runs/create-test-run', ['lots' => $lots]);
     }
 
