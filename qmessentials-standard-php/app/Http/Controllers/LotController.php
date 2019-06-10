@@ -24,7 +24,7 @@ class LotController extends Controller
      */
     public function index()
     {
-        $lots = Lot::all();
+        $lots = Lot::whereIn('lot_status', ['New','Testing','Completed'])->get();
         return view('lots/lots', ['lots' => $lots]);
     }
 
@@ -57,6 +57,7 @@ class LotController extends Controller
         $lot->lot_number = $request->lot_number;
         $lot->product_id = $request->product_id;
         $lot->customer_name = $request->customer_name;
+        $lot->lot_status = 'New';
         $lot->save();
         return redirect()->action('LotController@index');
     }
@@ -103,6 +104,7 @@ class LotController extends Controller
         $lot = Lot::find($id);
         $lot->product_id = $request->product_id;
         $lot->customer_name = $request->customer_name;
+        $lot->lot_status = $request->lot_status;
         $lot->save();        
         if (!is_null($request->new_item_number)) {
             $item = new Item;

@@ -32,7 +32,10 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->registerPolicies();
-        if (Schema::hasTable('roles')) {
+        if (Schema::hasTable('roles')) { //This check is necessary to get artisan to run. Apparently artisan boots 
+                                         //the application on any artisan command (including migrate!) which creates 
+                                         // kind of a Catch-22. Maybe I'm missing some obvious alternative, but this 
+                                         //seems to solve the problem.
 
             Gate::before(function($user, $ability) {
                 if ($this->isUserInRole($user, ['Administrator'])) {

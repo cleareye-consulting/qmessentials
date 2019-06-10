@@ -26,6 +26,15 @@
             <label class="control-label" for="customer_name">Customer</label>
             <input class="form-control" type="text" id="customer_name" name="customer_name" value="{{$lot->customer_name}}"/>
         </div>        
+        <div class="form-group">
+            <label class="control-label" for="lot_status">Status</label>
+            <select class="form-control" name="lot_status" id="lot_status">
+                <option value="New" {{$lot->lot_status == 'New' ? 'selected' : ''}}>New</option>
+                <option value="Testing" {{$lot->lot_status == 'Testing' ? 'selected' : ''}}>Testing</option>
+                <option value="Completed" {{$lot->lot_status == 'Completed' ? 'selected' : ''}}>Completed</option>
+                <option value="Archived" {{$lot->lot_status == 'Archived' ? 'selected' : ''}}>Archived</option>
+            </select>
+        </div>
         <table class="table">
             <thead>
                 <tr>

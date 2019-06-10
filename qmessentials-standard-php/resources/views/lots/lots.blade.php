@@ -13,6 +13,7 @@
                     <th>Product</th>
                     <th>Customer</th>
                     <th>Created</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -22,6 +23,7 @@
                     <td>{{$lot->product->product_name}}</td>
                     <td>{{$lot->customer_name}}</td>
                     <td>{{$lot->created_at}}</td>
+                    <td>{{$lot->lot_status}}</td>
                 </tr>
             @endforeach
             </tbody>
