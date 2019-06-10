@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class TestPlan extends Model
 {
     
-    public function product() {
-        return $this->belongsTo('App\Product');
+    public function productTestPlans() {
+        return $this->hasMany('App\ProductTestPlan');
     }
 
     public function testPlanMetrics() {

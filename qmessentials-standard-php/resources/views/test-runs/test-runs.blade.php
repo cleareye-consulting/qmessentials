@@ -20,12 +20,12 @@
             <tbody>
             @foreach($test_runs as $test_run) 
                 <tr>
-                    <td>{{$test_run->created_date}}</td>                    
-                    <td>{{$test_run->test_plan_name}}</td>
-                    <td>{{$test_run->item_number}}</td>
-                    <td>{{$test_run->lot_number}}</td>
-                    <td>{{$test_run->product_name}}</td>
-                    <td><a href="/test-runs/{{$test_run->test_run_id}}/edit">Edit</a></td>
+                    <td>{{$test_run->created_at}}</td>                    
+                    <td>{{$test_run->testPlan->test_plan_name}}</td>
+                    <td>{{$test_run->item->item_number}}</td>
+                    <td>{{$test_run->item->lot->lot_number}}</td>
+                    <td>{{$test_run->item->lot->product->product_name}}</td>
+                    <td><a href="/test-runs/{{$test_run->id}}/edit">Edit</a></td>
                 </tr>
             @endforeach
             </tbody>

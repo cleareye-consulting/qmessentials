@@ -5,10 +5,10 @@
 @section('content')    
     <div class="container">
     <h2 class="subtitle">Edit Test Run</h2>  
-    <h3>Lot {{$test_run->lot_number}} &ndash; Item {{$test_run->item_number}} &ndash; {{$test_run->test_plan_name}}</h3>
-    <form class="form" action="/test-runs/{{$test_run->test_run_id}}" method="POST">
+    <h3>Lot {{$test_run->item->lot->lot_number}} &ndash; Item {{$test_run->item->item_number}} &ndash; {{$test_run->testPlan->test_plan_name}}</h3>
+    <form class="form" action="/test-runs/{{$test_run->id}}" method="POST">
         {{csrf_field()}}        
-        <input type="hidden" id="test_run_id" name="test_run_id" value="{{$test_run->test_run_id}}"/>
+        <input type="hidden" id="id" name="id" value="{{$test_run->id}}"/>
         <input type="hidden" name="_method" value="PUT">
         <table class="table">
             <thead>
@@ -19,19 +19,19 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($observations as $observation)
+                @foreach ($test_run->observations()->get() as $observation)
                 <tr>
-                    <td><a href="/metrics/{{$observation->metric_id}}" target="_blank">{{$observation->metric_name}}{{!($observation->is_nullable) ? '*' : ''}}</a></td>
-                    <td class="observation-criteria">{{$observation->criteria}} {{$observation->unit}}</td>
+                    <td><a href="/metrics/{{$observation->testPlanMetric->metric_id}}" target="_blank">{{$observation->testPlanMetric->metric->metric_name}}{{$observation->testPlanMetric->qualifier == '' ? '' : ' (' . $observation->testPlanMetric->qualifier . ')'}}{{!($observation->testPlanMetric->is_nullable) ? '*' : ''}}</a></td>
+                    <td class="observation-criteria">{{\App\TestPlanMetric::reconstructCriteria($observation->min_value, $observation->is_min_value_inclusive, $observation->max_value, $observation->is_max_value_inclusive)}} {{$observation->testPlanMetric->unit}}</td>
                     <td 
                         data-min-value="{{$observation->min_value}}" 
                         data-is-min-value-inclusive="{{$observation->is_min_value_inclusive ? 'true' : 'false'}}"
                         data-max-value="{{$observation->max_value}}"
                         data-is-max-value-inclusive="{{$observation->is_max_value_inclusive ? 'true' : 'false'}}">
-                    @if ($observation->has_multiple_results)
-                        <textarea class="form-control observation-results" name="observation-results-{{$observation->observation_id}}">{{implode(' ', $observation->result_values)}}</textarea>
+                    @if ($observation->testPlanMetric->metric->has_multiple_results)
+                        <textarea class="form-control observation-results" name="observation-results-{{$observation->id}}">{{implode(' ', $observation->observationResults()->get()->map(function($orv) {return $orv->result_value;})->toArray())}}</textarea>
                     @else
-                        <input class="form-control observation-results" name="observation-results-{{$observation->observation_id}}" value="{{count($observation->result_values) == 1 ? $observation->result_values[0] : ''}}"/>
+                        <input class="form-control observation-results" name="observation-results-{{$observation->id}}" value="{{$observation->observationResults()->first()->result_value}}"/>
                     @endif
                     </td>
                 </tr>
