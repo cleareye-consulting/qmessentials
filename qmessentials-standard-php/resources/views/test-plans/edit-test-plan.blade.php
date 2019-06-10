@@ -11,7 +11,7 @@
         <input type="hidden" name="_method" value="PUT">
         <input type="hidden" name="test_plan_metric_id_under_edit" value="{{$test_plan_metric_id_under_edit}}"/>
         <input type="hidden" name="is_active_original_value" id="is_active_original_value" value="{{$test_plan->is_active}}"/>
-        <input type="hidden" name="test_plan_metric_id_to_delete" value=""/>
+        <input type="hidden" id="test_plan_metric_id_to_delete" name="test_plan_metric_id_to_delete" value=""/>
         <div class="form-group">
             <label class="control-label" for="test_plan_name">Name</label>
             <input class="form-control" type="text" id="test_plan_name" name="test_plan_name" placeholder="Name" value="{{$test_plan->test_plan_name}}" disabled/>
@@ -31,7 +31,7 @@
             </thead>
             <tbody>
             @foreach($test_plan_metrics as $test_plan_metric)
-                @if ($test_plan_metric->test_plan_metric_id == $test_plan_metric_id_under_edit)
+                @if ($test_plan_metric->id == $test_plan_metric_id_under_edit)
                 <tr>
                     <td><input type="text" class="form-control" id="edited_metric_sort_order" name="edited_metric_sort_order" value="{{$test_plan_metric->sort_order}}"/></td>
                     <td>{{$test_plan_metric->metric_name}}</td>
@@ -44,7 +44,7 @@
                         </select>
                     </td>
                     <td>
-                        <input class="form-control" name="edited_metric_usage_code" id="edited_metric_usage_code" list="usageCodes" value="{{$test_plan_metric->usage_code}}"/> 
+                        <input class="form-control" name="edited_metric_usage_code" id="edited_metric_usage_code" list="usageCodes" value="{{$test_plan_metric->usage_code ?? 'Any'}}"/> 
                         <datalist id="usageCodes">
                             <option>Any</option>
                             <option>All</option>
@@ -78,8 +78,8 @@
                     <td>{{$test_plan_metric->unit}}</td>
                     <td>{{$test_plan_metric->is_nullable ? 'Y' : 'N'}}</td>
                     <td>
-                        <a class="btn btn-sm btn-outline-primary" href="/test-plans/{{$test_plan_metric->test_plan_id}}/edit/{{$test_plan_metric->test_plan_metric_id}}">Edit</a>
-                        <button type="button" class="btn btn-sm btn-outline-danger test-plan-metric-delete" data-test-plan-metric-id="{{$test_plan_metric->test_plan_metric_id}}">Delete</button>
+                        <a class="btn btn-sm btn-outline-primary" href="/test-plans/{{$test_plan_metric->test_plan_id}}/edit/{{$test_plan_metric->id}}">Edit</a>
+                        <button type="button" class="btn btn-sm btn-outline-danger test-plan-metric-delete" data-test-plan-metric-id="{{$test_plan_metric->id}}">Delete</button>
                     </td>
                 </tr>
                 @endif
@@ -97,7 +97,7 @@
                     </td>
                     <td><select class="form-control" id="new_metric_qualifier" name="new_metric_qualifier"></select></td>
                     <td>
-                        <input class="form-control" name="new_metric_usage_code" id="new_metric_usage_code" list="usageCodes"/> 
+                        <input class="form-control" name="new_metric_usage_code" id="new_metric_usage_code" list="usageCodes" value="Any"/> 
                         <datalist id="usageCodes">
                             <option>Any</option>
                             <option>All</option>
@@ -149,9 +149,10 @@
                     $('#new_metric_sort_order').val(newValue);
                 }
             });
-            $('button.test-plan-metric-delete').click(() => {
-                $('#test_plan_metric_id_to_delete').val($(this).data('testPlanMetricId'));
-                $(this).parents('form').submit();
+            $('button.test-plan-metric-delete').click(event => {
+                const metricIdToDelete = $(event.target).data('testPlanMetricId');
+                $('#test_plan_metric_id_to_delete').val(metricIdToDelete);
+                $(event.target).parents('form').submit();
             });
         });
     </script>

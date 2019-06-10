@@ -101,12 +101,37 @@ class TestPlanController extends Controller
             return redirect()->action('TestPlanController@index');
         }
         $test_plan = \App\TestPlan::find($id);
-        $test_plan_metrics = \App\TestPlanMetric::where('test_plan_id', $id)->get()->toArray();
+        $test_plan_metrics = array_map(            
+            function($tpm) {
+                return (object) [
+                    'id' => $tpm->id,
+                    'metric_id' => $tpm->metric_id,
+                    'metric_name' => $tpm->metric_name,
+                    'test_plan_id' => $tpm->test_plan_id,
+                    'sort_order' => $tpm->sort_order,
+                    'qualifier' => $tpm->qualifier,
+                    'unit' => $tpm->unit,
+                    'usage_code' => $tpm->usage_code,
+                    'criteria' => \App\TestPlanMetric::reconstructCriteria($tpm->min_value, $tpm->is_min_value_inclusive, $tpm->max_value, $tpm->is_max_value_inclusive),
+                    'is_nullable' => $tpm->is_nullable
+                ];
+            },
+            DB::table('test_plan_metrics')
+                ->join('metrics', 'test_plan_metrics.metric_id', '=', 'metrics.id')
+                ->where([['test_plan_metrics.test_plan_id', $id],['test_plan_metrics.deleted_at',NULL]])
+                ->select(['test_plan_metrics.test_plan_id','test_plan_metrics.id','test_plan_metrics.metric_id',
+                    'metrics.metric_name','test_plan_metrics.sort_order','test_plan_metrics.qualifier','test_plan_metrics.unit',
+                    'test_plan_metrics.usage_code','test_plan_metrics.min_value','test_plan_metrics.is_min_value_inclusive',
+                    'test_plan_metrics.max_value','test_plan_metrics.is_max_value_inclusive','test_plan_metrics.is_nullable'])
+                ->orderby('test_plan_metrics.sort_order')
+                ->get()
+                ->toArray()
+        );
         $availableQualifiersForEdit = NULL;
         $availableUnitsForEdit = NULL;
         $metrics = \App\Metric::all();
         if (!is_null($test_plan_metric_id_under_edit)) {
-            $metric_id = \App\TestPlanMetric::where('test_plan_metric_id',$test_plan_metric_id_under_edit)->value('metric_id');
+            $metric_id = \App\TestPlanMetric::where('id',$test_plan_metric_id_under_edit)->value('metric_id');
             $availableQualifiersForEdit = \App\MetricAvailableQualifier::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('qualifier')->toArray();
             $availableUnitsForEdit = \App\MetricAvailableUnit::where('metric_id', $metric_id)->orderBy('sort_order')->pluck('unit')->toArray();
         }
@@ -194,8 +219,6 @@ class TestPlanController extends Controller
         else if ($request->test_plan_metric_id_under_edit != '') {
             $criteria = $this->parse_criteria($request->edited_metric_criteria ?? 'Any');
             $editedTestPlanMetric = \App\TestPlanMetric::find($request->test_plan_metric_id_under_edit);
-            $editedTestPlanMetric->test_plan_id = $request->test_plan_id;
-            $editedTestPlanMetric->metric_id = $request->edited_metric_id;
             $editedTestPlanMetric->sort_order = $request->edited_metric_sort_order;
             $editedTestPlanMetric->qualifier = $request->edited_metric_qualifier;              
             $editedTestPlanMetric->usage_code = $request->edited_metric_usage_code;
@@ -206,11 +229,11 @@ class TestPlanController extends Controller
             $editedTestPlanMetric->max_value =  $criteria['max_value'];
             $editedTestPlanMetric->is_max_value_inclusive = $criteria['is_max_value_inclusive'];
             $editedTestPlanMetric->save();
-            $this->renumber_test_plan_metrics($request->test_plan_id, $request->edited_metric_sort_order, $test_plan_metric_id_under_edit);
+            $this->renumber_test_plan_metrics($request->test_plan_id, $request->edited_metric_sort_order, $request->test_plan_metric_id_under_edit);
             return redirect()->action('TestPlanController@edit', ['id' => $id]);
         }
         else if ($request->test_plan_metric_id_to_delete != '') {
-            TestPlanMetric::destroy($request->test_plan_metric_id_to_delete);
+            \App\TestPlanMetric::destroy($request->test_plan_metric_id_to_delete);
             return redirect()->action('TestPlanController@edit', ['id' => $id]);
         }
         return redirect()->action('TestPlanController@index');
