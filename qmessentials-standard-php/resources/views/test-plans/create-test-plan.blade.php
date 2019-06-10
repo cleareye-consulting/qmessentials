@@ -16,7 +16,7 @@
             <select class="form-control" name="duplicate_of_plan_id" id="duplicate_of_plan_id">
                 <option value="">None</option>
                 @foreach($existing_test_plans as $existing_test_plan)
-                    <option value="{{$existing_test_plan->test_plan_id}}">{{$existing_test_plan->test_plan_name}}</option>
+                    <option value="{{$existing_test_plan->id}}">{{$existing_test_plan->test_plan_name}}</option>
                 @endforeach
             </select>
         </div>

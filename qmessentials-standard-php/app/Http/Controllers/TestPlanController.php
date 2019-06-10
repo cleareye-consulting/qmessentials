@@ -57,20 +57,20 @@ class TestPlanController extends Controller
             $testPlan->test_plan_name = $request->test_plan_name;
             $testPlan->save();
             if (!is_null($request->duplicate_of_plan_id)) {
-                $originalMetrics =  \App\TestPlanMetric::where('test_plan_id', $duplicate_of_plan_id)->get();    
-                foreach($originalMetrics as $originalMetric) {
+                $testPlanToDuplicate = \App\TestPlan::find($request->duplicate_of_plan_id);
+                foreach($testPlanToDuplicate->testPlanMetrics()->get() as $originalMetric) {
                     $duplicateMetric = new \App\TestPlanMetric;
                     $duplicateMetric->test_plan_id = $testPlan->id;
-                    $duplicateMetric->metric_id = $original_metric->metric_id;
-                    $duplicateMetric->sort_order = $original_metric->sort_order;
-                    $duplicateMetric->unit = $original_metric->unit;
-                    $duplicateMetric->usage_code = $original_metric->usage_code;
-                    $duplicateMetric->qualifier = $original_metric->qualifier;
-                    $duplicateMetric->is_nullable = $original_metric->is_nullable;
-                    $duplicateMetric->min_value = $original_metric->min_value;
-                    $duplicateMetric->is_min_value_inclusive = $original_metric->is_min_value_inclusive;
-                    $duplicateMetric->max_value = $original_metric->max_value;
-                    $duplicateMetric->is_max_value_inclusive = $original_metric->is_max_value_inclusive;
+                    $duplicateMetric->metric_id = $originalMetric->metric_id;
+                    $duplicateMetric->sort_order = $originalMetric->sort_order;
+                    $duplicateMetric->unit = $originalMetric->unit;
+                    $duplicateMetric->usage_code = $originalMetric->usage_code;
+                    $duplicateMetric->qualifier = $originalMetric->qualifier;
+                    $duplicateMetric->is_nullable = $originalMetric->is_nullable;
+                    $duplicateMetric->min_value = $originalMetric->min_value;
+                    $duplicateMetric->is_min_value_inclusive = $originalMetric->is_min_value_inclusive;
+                    $duplicateMetric->max_value = $originalMetric->max_value;
+                    $duplicateMetric->is_max_value_inclusive = $originalMetric->is_max_value_inclusive;
                     $duplicateMetric->save();
                 }
             }
