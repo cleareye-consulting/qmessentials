@@ -5,9 +5,9 @@
 @section('content')    
     <div class="container">
     <h2 class="subtitle">Edit Metric</h2>  
-    <form class="form" action="/metrics/{{$metric->metric_id}}" method="POST">
+    <form class="form" action="/metrics/{{$metric->id}}" method="POST">
         {{csrf_field()}}
-        <input type="hidden" id="metric_id" name="metric_id" value="{{$metric->metric_id}}"/>
+        <input type="hidden" id="id" name="id" value="{{$metric->id}}"/>
         <input type="hidden" name="_method" value="PUT">
         <div class="form-group">
             <label class="control-label" for="metric_name">Name</label>
@@ -23,19 +23,19 @@
         </div>
         <div class="form-group">
             <label class="control-label" for="available_qualifiers">Available Qualifiers</label>
-            <input class="form-control" type="text" id="available_qualifiers" name="available_qualifiers" value="{{implode(' ', $metric->available_qualifiers)}}"/>
+            <input class="form-control" type="text" id="available_qualifiers" name="available_qualifiers" value="{{implode(' ', $metric->metricAvailableQualifiers()->get()->map(function($maq) {return $maq->qualifier;})->toArray())}}"/>
         </div>
         <div class="form-group">
             <label class="control-label" for="available_units">Available Units</label>
-            <input class="form-control" type="text" id="available_units" name="available_units" value="{{implode(' ', $metric->available_units)}}"/>
+            <input class="form-control" type="text" id="available_units" name="available_units" value="{{implode(' ', $metric->metricAvailableUnits()->get()->map(function($mau) {return $mau->unit;})->toArray())}}"/>
         </div>
         <div class="form-group">
             <label class="control-label" for="industry_standards">Industry Standards</label>
-            <textarea class="form-control" type="text" id="industry_standards" name="industry_standards">{{implode("\n", $metric->industry_standards)}}</textarea>
+            <textarea class="form-control" type="text" id="industry_standards" name="industry_standards">{{implode("\n", $metric->metricIndustryStandards()->get()->map(function($mis) {return $mis->industry_standard;})->toArray())}}</textarea>
         </div>     
         <div class="form-group">
             <label class="control-label" for="methodology_references">Methodology References</label>
-            <textarea class="form-control" type="text" id="methodology_references" name="methodology_references">{{implode("\n", $metric->methodology_references)}}</textarea>
+            <textarea class="form-control" type="text" id="methodology_references" name="methodology_references">{{implode("\n", $metric->metricMethodologyReferences()->get()->map(function($mmr) {return $mmr->methodology_reference;})->toArray())}}</textarea>
         </div>      
         <div class="form-group">
             <button class="btn btn-primary">Save Changes</button>

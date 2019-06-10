@@ -11,7 +11,7 @@
                 <select class="form-control" name="lot_id" id="lot_id">
                     <option value="0">Select a Lot...</option>
                     @foreach ($lots as $lot)
-                    <option value="{{$lot->lot_id}}" {{($lot->lot_id == $lot_id ? 'selected' : '')}}>{{$lot->lot_number}}</option>
+                    <option value="{{$lot->id}}" {{($lot->id == $lot_id ? 'selected' : '')}}>{{$lot->lot_number}}</option>
                     @endforeach
                 </select>
             </div>

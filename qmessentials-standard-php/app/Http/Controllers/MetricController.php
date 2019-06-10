@@ -150,20 +150,7 @@ class MetricController extends Controller
             return redirect()->action('MetricController@index');
         }    
         $metric = \App\Metric::find($id);
-        $availableQualifiers = \App\MetricAvailableQualifier::where('metric_id', $id)->orderBy('sort_order')->pluck('qualifier')->toArray();
-        $availableUnits = \App\MetricAvailableUnit::where('metric_id', $id)->orderBy('sort_order')->pluck('unit')->toArray();
-        $industryStandards = \App\MetricIndustryStandard::where('metric_id', $id)->orderBy('sort_order')->pluck('industry_standard')->toArray();
-        $methodologyReferences = \App\MetricMethodologyReference::where('metric_id', $id)->orderBy('sort_order')->pluck('methodology_reference')->toArray();
-        $model = [
-            'metric_id' => $metric->id,
-            'metric_name' => $metric->metric_name,
-            'has_multiple_results' => $metric->has_multiple_results,
-            'available_qualifiers' => $availableQualifiers,
-            'available_units' => $availableUnits,
-            'industry_standards' => $industryStandards,
-            'methodology_references' => $methodologyReferences
-        ];
-        return view('metrics/edit-metric', ['metric' => (object)$model]);
+        return view('metrics/edit-metric', ['metric' => $metric]);
     }
 
     /**

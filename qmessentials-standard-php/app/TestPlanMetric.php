@@ -17,6 +17,10 @@ class TestPlanMetric extends Model
         return $this->belongsTo('App\Metric');
     }
 
+    public function observations() {
+        return $this->hasMany('App\Observation');
+    }
+
     public static function reconstructCriteria($min_value = NULL, $is_min_value_inclusive = NULL, 
             $max_value = NULL, $is_max_value_inclusive = NULL) {
         if ($min_value != '') {
