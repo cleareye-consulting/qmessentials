@@ -1,1 +1,25 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
+
+// Body
+$body-bg: #ffffff;
+
+// Typography
+$font-family-sans-serif: 'Open Sans', sans-serif;
+$font-size-base: 0.9rem;
+$line-height-base: 1.6;
+
+// Colors
+$blue: #2080ce;
+$indigo: #6574cd;
+$purple: #9561e2;
+$pink: #f66d9b;
+$red: #ce2029;
+$orange: #f6993f;
+$yellow: #ffed4a;
+$green: #20ce6e;
+$teal: #4dc0b5;
+$cyan: #6cb2eb;
+
+$primary: $blue;
+
 @import '~bootstrap/scss/bootstrap.scss';
