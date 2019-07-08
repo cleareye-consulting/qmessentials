@@ -11,7 +11,7 @@ import TestPlansCreate from './components/testPlans/Create'
 import TestPlansEdit from './components/testPlans/Edit'
 import './App.scss'
 import Login from './components/auth/Login'
-import AuthRequired from './components/auth/AuthRequired';
+import AuthProvider from './components/auth/AuthProvider'
 
 export default class App extends Component {
   render() {
@@ -19,7 +19,7 @@ export default class App extends Component {
       <BrowserRouter>
         <Layout>          
           <Route path="/login" exact component={Login} />
-          <AuthRequired>
+          <AuthProvider>
             <Route path="/" exact component={Home} />
             <Route path="/metrics" exact component={MetricsList} />
             <Route path="/metric/create" exact component={MetricsCreate} />
@@ -27,7 +27,7 @@ export default class App extends Component {
             <Route path="/test-plans" exact component={TestPlansList} />
             <Route path="/test-plans/create" exact component={TestPlansCreate} />
             <Route path="/test-plans/:id/edit" exact component={TestPlansEdit} />
-          </AuthRequired>
+          </AuthProvider>
         </Layout>
       </BrowserRouter>
     )

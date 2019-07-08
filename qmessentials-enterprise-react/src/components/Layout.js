@@ -15,7 +15,7 @@ export default class Layout extends Component {
                         </div>
                     </nav>
                 </header>
-                <main>
+                <main className="py-4">
                     <div className="container">
                         {this.props.children}
                     </div>

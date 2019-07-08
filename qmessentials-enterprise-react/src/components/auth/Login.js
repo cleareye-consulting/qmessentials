@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import ApiConnector from '../../ApiConnector'
+import AuthContext from './AuthContext';
 
 export default class Login extends Component {
     constructor(props) {
@@ -46,7 +47,7 @@ export default class Login extends Component {
         return (
             <React.Fragment>
                     <div className="row justify-content-center">
-        <div className="col-md-8">
+                    <div className="col-md-8">
                     <div className="card">
                         <div className="card-header">
                             Login
@@ -79,3 +80,5 @@ export default class Login extends Component {
         )
     }
 }
+
+Login.contextType = AuthContext
