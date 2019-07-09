@@ -1,6 +1,6 @@
-
 import React, { Component } from 'react'
 import { BrowserRouter, Route } from 'react-router-dom'
+import './App.scss'
 import Layout from './components/Layout'
 import Home from './components/Home'
 import MetricsList from './components/metrics/List'
@@ -9,8 +9,8 @@ import MetricsEdit from './components/metrics/Edit'
 import TestPlansList from './components/testPlans/List'
 import TestPlansCreate from './components/testPlans/Create'
 import TestPlansEdit from './components/testPlans/Edit'
-import './App.scss'
 import AuthProvider from './components/auth/AuthProvider'
+import ChangePassword from './components/auth/ChangePassword'
 
 export default class App extends Component {
   render() {
@@ -19,6 +19,7 @@ export default class App extends Component {
         <AuthProvider>          
           <Layout>            
             <Route path="/" exact component={Home} />
+            <Route path="/change-password" exact component={ChangePassword}/>
             <Route path="/metrics" exact component={MetricsList} />
             <Route path="/metric/create" exact component={MetricsCreate} />
             <Route path="/metric/:id/edit" exact component={MetricsEdit} />
