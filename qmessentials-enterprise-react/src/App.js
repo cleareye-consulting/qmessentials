@@ -10,16 +10,14 @@ import TestPlansList from './components/testPlans/List'
 import TestPlansCreate from './components/testPlans/Create'
 import TestPlansEdit from './components/testPlans/Edit'
 import './App.scss'
-import Login from './components/auth/Login'
 import AuthProvider from './components/auth/AuthProvider'
 
 export default class App extends Component {
   render() {
     return (
       <BrowserRouter>
-        <AuthProvider>
-          <Layout>
-            <Route path="/login" exact component={Login} />
+        <AuthProvider>          
+          <Layout>            
             <Route path="/" exact component={Home} />
             <Route path="/metrics" exact component={MetricsList} />
             <Route path="/metric/create" exact component={MetricsCreate} />

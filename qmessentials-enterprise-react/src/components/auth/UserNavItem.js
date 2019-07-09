@@ -2,26 +2,15 @@ import React from 'react'
 import AuthContext from './AuthContext';
 
 export default function UserNavItem(props) {
-    const { isLoggedIn } = React.useContext(AuthContext);
+    const { authToken, setAuthToken } = React.useContext(AuthContext);
     return (
-        isLoggedIn
-            ? (
-                <li className="nav-item dropdown">
-                    <a id="navbarDropdown" className="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                        UserName<span className="caret"></span>
-                    </a>
-                    <div className="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                        <a className="dropdown-item" href="#">
-                            Log Out
-                        </a>
-                    </div>
-                </li>
-            )
-            : (
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Log In</a>
-                </li>
-
-            )
+        authToken.length > 0
+            ?
+            <form className="form-inline my-2 my-lg-0">
+                <button className="btn btn-sm btn-outline-light my-2 my-sm-0" type="button" onClick={() => setAuthToken('')}>Log Out</button>
+            </form>
+            :
+            <></>
+        
     )
 }

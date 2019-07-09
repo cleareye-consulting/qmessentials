@@ -1,8 +1,8 @@
 import React from 'react'
 
 let defaultState = {
-    isLoggedIn: false,
-    setLoginState: () => {  }
+    authToken: '',    
+    setAuthToken: () => {  }
 }
 
 const AuthContext = React.createContext(defaultState)
