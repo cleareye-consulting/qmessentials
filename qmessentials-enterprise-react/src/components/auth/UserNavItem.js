@@ -1,36 +1,27 @@
-//                         @guest
-//                             <li class="nav-item">
-//                                 <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-//                             </li>
-//                         @else
-//                             <li class="nav-item dropdown">
-//                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-//                                     {{ Auth::user()->name }} <span class="caret"></span>
-//                                 </a>
+import React from 'react'
+import AuthContext from './AuthContext';
 
-//                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-//                                     <a class="dropdown-item" href="{{ route('logout') }}"
-//                                        onclick="event.preventDefault();
-//                                                      document.getElementById('logout-form').submit();">
-//                                         {{ __('Logout') }}
-//                                     </a>
+export default function UserNavItem(props) {
+    const { isLoggedIn } = React.useContext(AuthContext);
+    return (
+        isLoggedIn
+            ? (
+                <li className="nav-item dropdown">
+                    <a id="navbarDropdown" className="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                        UserName<span className="caret"></span>
+                    </a>
+                    <div className="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                        <a className="dropdown-item" href="#">
+                            Log Out
+                        </a>
+                    </div>
+                </li>
+            )
+            : (
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Log In</a>
+                </li>
 
-//                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-//                                         @csrf
-//                                     </form>
-//                                 </div>
-//                             </li>
-//                         @endguest
-
-import React, { Component } from 'react'
-
-export default class UserNavItem extends Component {
-
-    constructor(props) {
-        super(props)
-        this.state = {
-            isLoggedIn
-        }
-    }
-
+            )
+    )
 }

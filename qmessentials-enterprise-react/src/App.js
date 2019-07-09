@@ -17,9 +17,9 @@ export default class App extends Component {
   render() {
     return (
       <BrowserRouter>
-        <Layout>          
-          <Route path="/login" exact component={Login} />
-          <AuthProvider>
+        <AuthProvider>
+          <Layout>
+            <Route path="/login" exact component={Login} />
             <Route path="/" exact component={Home} />
             <Route path="/metrics" exact component={MetricsList} />
             <Route path="/metric/create" exact component={MetricsCreate} />
@@ -27,8 +27,8 @@ export default class App extends Component {
             <Route path="/test-plans" exact component={TestPlansList} />
             <Route path="/test-plans/create" exact component={TestPlansCreate} />
             <Route path="/test-plans/:id/edit" exact component={TestPlansEdit} />
-          </AuthProvider>
-        </Layout>
+          </Layout>
+        </AuthProvider>
       </BrowserRouter>
     )
   }

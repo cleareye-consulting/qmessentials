@@ -24,16 +24,18 @@ export default class AuthProvider extends Component {
     }
     
     setLoginState(value) {
-        console.log(value)
         this.setState({ isLoggedIn: value })
-        console.log(this.state)
     }
 
-    render() {
+    componentDidMount() {
+        this.setLoginState(this.hasCurrentSessionToken())
+    }
+
+    render() {        
         return (
             <AuthContext.Provider value={this.state}>
                 {
-                    this.hasCurrentSessionToken() ? this.props.children : <Login onSessionTokenSet={() => this.setLoginState(true)} />
+                    this.state.isLoggedIn ? this.props.children : <Login onSessionTokenSet={() => this.setLoginState(true)} />
                 }
             </AuthContext.Provider>
         )

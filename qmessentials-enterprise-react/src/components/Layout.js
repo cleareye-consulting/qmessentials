@@ -1,10 +1,12 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
+import UserNavItem from './auth/UserNavItem';
+import AuthContext from './auth/AuthContext';
 
 export default class Layout extends Component {
     render() {
         return (
-            <React.Fragment>                    
+            <>                    
                 <header>
                     <nav className="navbar navbar-expand-md navbar-dark bg-primary">
                         <div className="container">
@@ -12,6 +14,7 @@ export default class Layout extends Component {
                             <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                                 <span className="navbar-toggler-icon"></span>
                             </button>
+                            <UserNavItem></UserNavItem>
                         </div>
                     </nav>
                 </header>
@@ -22,10 +25,10 @@ export default class Layout extends Component {
                 </main>
                 <footer>
                     
-                </footer>
-                        
+                </footer>                        
 
-            </React.Fragment>
+            </>
         )        
     }
 }
+Layout.contextType = AuthContext
