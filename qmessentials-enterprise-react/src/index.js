@@ -3,11 +3,6 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import axios from 'axios';
-
-if (localStorage.sessionToken) {
-    axios.defaults.headers.common['Authorization'] = "Bearer " + localStorage.sessionToken;
-}
 
 ReactDOM.render(<App />, document.getElementById('root'));
 

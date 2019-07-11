@@ -20,7 +20,7 @@ export default class List extends Component {
 
     render() {
         return (
-            <React.Fragment>
+            <>
                 <h3 className="subtitle">Metrics</h3>
                 <table className="table">
                     <thead>
@@ -39,7 +39,7 @@ export default class List extends Component {
                     </tbody>
                 </table>
                 <Link to="/metric/create">Add a metric</Link>
-            </React.Fragment>
+            </>
         )
     }
 }

@@ -7,7 +7,13 @@ export default class ApiConnector {
         return token.data
     }
 
+    async changePassword(userId, newPassword) {
+        await axios.post(process.eventNames.REACT_APP_API_ENDPOINT + '/users', {userId: userId, password: newPassword})
+    }
+
     async listMetrics(filter) {
+        console.log('Auth header: ')
+        console.log(axios.defaults.headers.common['Authorization']);
         const metrics = await axios.get(process.env.REACT_APP_API_ENDPOINT + '/metrics', {
             params: {
                 filter: filter

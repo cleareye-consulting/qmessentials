@@ -116,7 +116,7 @@ export default class Edit extends Component {
                     <div className="form-group">
                         <div className="control-label">
                             <button className="btn btn-primary" onClick={this.handleSubmit}>Save Changes</button>
-                            <Link className="btn btn-default" to="/metrics">Cancel</Link>
+                            <Link className="btn btn-outline-secondary" to="/metrics">Cancel</Link>
                         </div>
                     </div>
                 </form>

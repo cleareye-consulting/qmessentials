@@ -95,7 +95,7 @@ export default class Create extends Component {
                     <div className="form-group">
                         <div className="control-label">
                             <button className="btn btn-primary" onClick={this.handleSubmit}>Add</button>
-                            <Link className="btn btn-default" to="/metrics">Cancel</Link>
+                            <Link className="btn btn-outline-secondary" to="/metrics">Cancel</Link>
                         </div>
                     </div>
                 </form>

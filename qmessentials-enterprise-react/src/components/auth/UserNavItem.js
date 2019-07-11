@@ -8,8 +8,9 @@ export default function UserNavItem(props) {
         authToken.length > 0
             ?
             <form className="form-inline my-2 my-lg-0">
-                <Link className="btn btn-sm btn-outline-light my-2 my-sm-0 py-1" to="/change-password">Change Password</Link>
-                <button className="btn btn-sm btn-outline-light my-2 my-sm-0 py-1" type="button" onClick={() => setAuthToken('')}>Log Out</button>
+                <Link className="btn btn-sm btn-outline-light my-2 my-sm-0" to="/change-password">Change Password</Link>
+                &nbsp;
+                <button className="btn btn-sm btn-outline-light my-2 my-sm-0" type="button" onClick={() => setAuthToken('')}>Log Out</button>
             </form>
             :
             <></>

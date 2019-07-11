@@ -30,7 +30,7 @@ export default class Login extends Component {
             const api = new ApiConnector()
             const token = await api.logIn(login)
             if (token) {
-                setAuthToken(token)
+                setAuthToken(token, this.state.login.userId)
             }
             else {
                 this.setState({ failed: true })
