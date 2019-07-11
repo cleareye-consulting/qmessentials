@@ -1,84 +1,65 @@
-import React, { Component } from 'react'
+import React, { useState, useContext } from 'react'
 import ApiConnector from '../../ApiConnector'
 import AuthContext from './AuthContext';
 
-export default class Login extends Component {    
+export default () => {
+    const [userId, setUserId] = useState('')
+    const [password, setPassword] = useState('')
+    const [failed, setFailed] = useState(false)
 
-    constructor(props) {        
-        super(props);
-        this.state = {
-            login: {
-                userId: '',
-                password: ''
-            },
-            failed: false
-        }
-        this.handleChange = this.handleChange.bind(this)
-        this.handleSubmit = this.handleSubmit.bind(this)
-    }
+    const { setAuthToken } = useContext(AuthContext)
 
-    handleChange(event) {
-        let login = this.state.login
-        login[event.target.name] = event.target.value
-        this.setState({login: login, failed: false})
-    }
-
-    async handleSubmit(event, setAuthToken) {        
+    const submit = async event => {
+        setFailed(false)
         event.preventDefault()
         try {
-            const login = this.state.login;
+            const login = { userId: userId, password: password }
             const api = new ApiConnector()
             const token = await api.logIn(login)
             if (token) {
-                setAuthToken(token, this.state.login.userId)
+                setAuthToken(token, userId)
             }
             else {
-                this.setState({ failed: true })
+                setFailed(true)
             }
         }
         catch (error) {
             console.error(error)
-            this.setState({ failed: true })
+            setFailed(true)
         }
     }
 
-    render() {
-        return (
-            <AuthContext.Consumer>{
-                ({ setAuthToken }) => (
-                    <>
-                        <div className="row justify-content-center">
-                            <div className="col-md-8">
-                                <div className="card">
-                                    <div className="card-header">
-                                        Login
-                                    </div>
-                                    <div className="card-body">
-                                        <form className="form">
-                                            <div className="form-group">
-                                                <label className="control-label" htmlFor="userId">User ID</label>
-                                                <input type="text" className="form-control" id="userId" name="userId" onChange={this.handleChange} />
-                                            </div>
-                                            <div className="form-group">
-                                                <label className="control-label" htmlFor="password">Password</label>
-                                                <input type="password" className="form-control" id="password" name="password" onChange={this.handleChange} />
-                                            </div>
-                                            <div className="form-group">
-                                                <button className="btn btn-primary" id="submitButton" onClick={e => this.handleSubmit(e, setAuthToken)}>Log In</button>
-                                            </div>
-                                            {
-                                                this.state.failed
-                                                    ? <div className="alert alert-danger" role="alert">There was a problem with your login credentials.</div>
-                                                    : null
-                                            }
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+    return (
+        <>
+            <div className="row justify-content-center">
+                <div className="col-md-8">
+                    <div className="card">
+                        <div className="card-header">
+                            Login
                         </div>
-                    </>
-                )}
-            </AuthContext.Consumer>
-        )
-    }
+                        <div className="card-body">
+                            <form className="form">
+                                <div className="form-group">
+                                    <label className="control-label" htmlFor="userId">User ID</label>
+                                    <input type="text" className="form-control" id="userId" name="userId" onChange={event => setUserId(event.target.value)} />
+                                </div>
+                                <div className="form-group">
+                                    <label className="control-label" htmlFor="password">Password</label>
+                                    <input type="password" className="form-control" id="password" name="password" onChange={event => setPassword(event.target.value)} />
+                                </div>
+                                <div className="form-group">
+                                    <button className="btn btn-primary" id="submitButton" onClick={submit}>Log In</button>
+                                </div>
+                                {
+                                    failed
+                                        ? <div className="alert alert-danger" role="alert">There was a problem with your login credentials.</div>
+                                        : null
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
+    )
 }

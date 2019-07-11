@@ -1,43 +1,38 @@
-import React, { Component } from 'react'
+import React, { useState, useEffect } from 'react'
 import AuthContext from './AuthContext'
 import axios from 'axios';
 
-export default class AuthProvider extends Component {
-
-    constructor(props) {
-        super(props)
-        this.setAuthToken = (token, userId) => {
-            this.setState({ authToken: token, userId: userId })
-            if (token.length > 0) {
-                sessionStorage['authToken'] = token
-                sessionStorage['userId'] = userId
-            }
-            else {
-                sessionStorage.removeItem('authToken')
-                sessionStorage.removeItem('userId')
-            }
-            axios.defaults.headers.common['Authorization'] = (token.length > 0) ? ('Bearer ' + token) : null;
-            console.log('Auth header: ')
-            console.log(axios.defaults.headers.common['Authorization']);
+export default props => {
+    const [authToken, setAuthTokenLocal] = useState('')
+    const [userId, setUserId] = useState('')
+    const setAuthToken = (token, userId) => {
+        setAuthTokenLocal(token)
+        setUserId(userId)
+        if (token.length > 0) {
+            sessionStorage['authToken'] = token
+            sessionStorage['userId'] = userId
         }
-        this.state = {
-            authToken: '',
-            userId: '',
-            setAuthToken: this.setAuthToken
+        else {
+            sessionStorage.removeItem('authToken')
+            sessionStorage.removeItem('userId')
         }
-    }        
-
-    componentDidMount() {
+        axios.defaults.headers.common['Authorization'] = (token.length > 0) ? ('Bearer ' + token) : null;
+        console.log('Auth header: ')
+        console.log(axios.defaults.headers.common['Authorization']);
+    }
+    useEffect(() => {
         if (sessionStorage['authToken']) {
-            this.setState({authToken: sessionStorage['authToken'], userId: sessionStorage['userId']})
+            setAuthToken(sessionStorage['authToken'], sessionStorage['userId'])
         }
+    })
+    const defaultValue = {
+        authToken: authToken,
+        userId: userId,
+        setAuthToken: setAuthToken
     }
-
-    render() {        
-        return (
-            <AuthContext.Provider value={this.state}>                
-                {this.props.children}
-            </AuthContext.Provider>
-        )
-    }
+    return (
+        <AuthContext.Provider value={defaultValue}>
+            {props.children}
+        </AuthContext.Provider>
+    )
 }

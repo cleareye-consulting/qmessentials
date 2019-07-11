@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { BrowserRouter, Route } from 'react-router-dom'
 import './App.scss'
 import Layout from './components/Layout'
@@ -12,9 +12,8 @@ import TestPlansEdit from './components/testPlans/Edit'
 import AuthProvider from './components/auth/AuthProvider'
 import ChangePassword from './components/auth/ChangePassword'
 
-export default class App extends Component {
-  render() {
-    return (
+export default () => {
+  return (
       <BrowserRouter>
         <AuthProvider>          
           <Layout>            
@@ -30,5 +29,4 @@ export default class App extends Component {
         </AuthProvider>
       </BrowserRouter>
     )
-  }
-};
+}

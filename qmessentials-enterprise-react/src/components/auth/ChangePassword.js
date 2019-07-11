@@ -1,85 +1,66 @@
-import React, { Component } from 'react'
+import React, { useState, useContext } from 'react'
 import AuthContext from './AuthContext'
 import ApiConnector from '../../ApiConnector';
 
-export default class ChangePassword extends Component {
+export default () => {
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [canSubmit, setCanSubmit] = useState(false)
+    const [showError, setShowError] = useState(false)
+    const authContext = useContext(AuthContext)
 
-    constructor() {
-        super()
-        this.state = {
-            userId: '',
-            newPassword: '',
-            confirmPassword: '',
-            canSubmit: false,
-            showError: false
-        }
-        this.handleChange = this.handleChange.bind(this)
-        this.handleBlur = this.handleBlur.bind(this)
-        this.handleSubmit = this.handleSubmit.bind(this)
+    const inputChange = (event, setter) => {
+        setter(event.target.value)
+        setCanSubmit(newPassword.length > 0 && confirmPassword.length > 0 && newPassword === confirmPassword)
+        setShowError(false)
     }
 
-    handleChange(event) {
-        let newState = this.state        
-        newState[event.target.name] = event.target.value                
-        newState.canSubmit = newState.newPassword.length > 0 && newState.confirmPassword.length > 0 && newState.newPassword === newState.confirmPassword
-        newState.showError = false
-        this.setState(newState)
+    const inputBlur = () => {
+        setShowError(newPassword.length > 0 && confirmPassword.length > 0 && newPassword !== confirmPassword)
     }
 
-    handleBlur() {
-        let newState = this.state        
-        newState.showError = newState.newPassword.length > 0 && newState.confirmPassword.length > 0 && newState.newPassword !== newState.confirmPassword
-        this.setState(newState)
-    }    
-
-    async handleSubmit() {
+    const submit = async () => {
         const api = new ApiConnector()
-        await api.changePassword(this.state.userId, this.state.newPassword)
+        await api.changePassword(authContext.userId, newPassword)
         this.props.history.push('/')
     }
 
-    render() {
-        return (
-            <AuthContext.Consumer>{
-                ({ setAuthToken, userId }) => (
-                    <>
-                        <div className="row justify-content-center">
-                            <div className="col-md-8">
-                                <div className="card">
-                                    <div className="card-header">
-                                        Change Password
+    return (
+        <>
+            <div className="row justify-content-center">
+                <div className="col-md-8">
+                    <div className="card">
+                        <div className="card-header">
+                            Change Password
                                     </div>
-                                    <div className="card-body">
-                                        <form className="form">
-                                            <div className="form-group">
-                                                <label className="control-label" htmlFor="userId">User ID</label>
-                                                <input type="text" className="form-control" id="userId" name="userId" disabled value={userId} />
-                                            </div>
-                                            <div className="form-group">
-                                                <label className="control-label" htmlFor="newPassword">New Password</label>
-                                                <input type="password" className="form-control" id="newPassword" name="newPassword" onChange={this.handleChange} onBlur={this.handleBlur} />
-                                            </div>
-                                            <div className="form-group">
-                                                <label className="control-label" htmlFor="confirmPassword">Confirm New Password</label>
-                                                <input type="password" className="form-control" id="confirmPassword" name="confirmPassword" onChange={this.handleChange} onBlur={this.handleBlur} />
-                                            </div>
-                                            <div className="form-group">
-                                                <button className="btn btn-primary" id="submitButton" onClick={this.handleSubmit} disabled={!this.state.canSubmit}>Submit</button>
-                                            </div>
-                                            {
-                                                (this.state.showError)
-                                                    ? <div className="alert alert-danger" role="alert">Passwords don't match.</div>
-                                                    : null
-                                            }
-                                        </form>
-                                    </div>
+                        <div className="card-body">
+                            <form className="form">
+                                <div className="form-group">
+                                    <label className="control-label" htmlFor="userId">User ID</label>
+                                    <input type="text" className="form-control" id="userId" name="userId" disabled value={authContext.userId} />
                                 </div>
-                            </div>
+                                <div className="form-group">
+                                    <label className="control-label" htmlFor="newPassword">New Password</label>
+                                    <input type="password" className="form-control" id="newPassword" name="newPassword" onChange={event => inputChange(event, setNewPassword)} onBlur={inputBlur} />
+                                </div>
+                                <div className="form-group">
+                                    <label className="control-label" htmlFor="confirmPassword">Confirm New Password</label>
+                                    <input type="password" className="form-control" id="confirmPassword" name="confirmPassword" onChange={event => inputChange(event, setConfirmPassword)} onBlur={inputBlur} />
+                                </div>
+                                <div className="form-group">
+                                    <button className="btn btn-primary" id="submitButton" onClick={submit} disabled={!canSubmit}>Submit</button>
+                                </div>
+                                {
+                                    (showError)
+                                        ? <div className="alert alert-danger" role="alert">Passwords don't match.</div>
+                                        : null
+                                }
+                            </form>
                         </div>
-                    </>
-                )}
-            </AuthContext.Consumer>
-        )
-    }
+                    </div>
+                </div>
+            </div>
+        </>
+    )
 
 }

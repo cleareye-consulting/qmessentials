@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import AuthContext from './AuthContext'
 import { Link } from 'react-router-dom'
 
-export default function UserNavItem(props) {
-    const { authToken, setAuthToken } = React.useContext(AuthContext)
+export default () => {
+    const { authToken, setAuthToken } = useContext(AuthContext)
     return (
         authToken.length > 0
             ?

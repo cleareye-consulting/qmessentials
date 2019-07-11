@@ -1,16 +1,14 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import UserNavItem from './auth/UserNavItem';
 import AuthContext from './auth/AuthContext';
 import Login from './auth/Login';
 
-export default class Layout extends Component {
-
-    render() {        
-        return (
-            <AuthContext.Consumer>{
-                ({ authToken }) => (
-                    <>
+export default props => {
+    return (
+        <AuthContext.Consumer>{
+            ({ authToken }) => (
+                <>
                     <header>
                         <nav className="navbar navbar-expand-md navbar-dark bg-primary">
                             <div className="container">
@@ -24,16 +22,14 @@ export default class Layout extends Component {
                     </header>
                     <main className="py-4">
                         <div className="container">
-                            {authToken.length > 0 ? this.props.children : <Login />}
+                            {authToken.length > 0 ? props.children : <Login />}
                         </div>
                     </main>
                     <footer>
                     
-                    </footer>                        
+                    </footer>
                     
-                    </>)}
-                </AuthContext.Consumer>    
-
-        )        
-    }
+                </>)}
+        </AuthContext.Consumer>
+    )
 }
