@@ -1,21 +1,52 @@
 const AWS = require('aws-sdk');
 const config = require('../config');
-const { promisify } = require('../utility');
 
 AWS.config.update({region: config.awsQueueRegion});
 
-exports.readFromBulkIntakeQueue = () => {
+exports.readFromBulkIntakeQueue = async () => {
     const sqs = new AWS.SQS({ apiVersion: config.awsSqsApiVersion });
     const params = {
-        QueueUrl: config.readFromBulkIntakeQueue,
-        AttributeNames: [ All ],
+        QueueUrl: config.bulkIntakeQueueUrl,
+        AttributeNames: [ 'All' ],
         MaxNumberOfMessages: 10,
-        MessageAttributeNames: [ All ],
-        VisibilityTimeout: 0,
+        MessageAttributeNames: ['All'],
         WaitTimeSeconds: 20
     };
-    const receive = promisify(sqs.receiveMessage);
-    return receive(params);
+    const promise = new Promise((resolve, reject) => {
+        sqs.receiveMessage(params, async (err, data) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                let messages = [];
+                for(let message of data.Messages) {
+                    messages.push(message);
+                    await deleteMessage(message.ReceiptHandle);
+                }
+                resolve(data);
+            }
+        });
+    })    
+    return promise;
+}
+
+const deleteMessage = async handle => {
+    const sqs = new AWS.SQS({ apiVersion: config.awsSqsApiVersion });
+    const params = {
+        QueueUrl: config.bulkIntakeQueueUrl,
+        ReceiptHandle: handle
+    };
+    const promise = new Promise((resolve, reject) => {
+        sqs.deleteMessage(params, (err, data) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve(data);
+            }
+        });        
+    });
+    return promise;
 }
 
 exports.writeToReportingDatabaseQueue = async (messageType, message) => {
@@ -30,7 +61,16 @@ exports.writeToReportingDatabaseQueue = async (messageType, message) => {
         MessageAttributes: JSON.stringify(message),
         QueueUrl: config.toReportingQueueUrl
     };
-    const send = promisify(sqs.sendMessage);
-    return send(params);
+    const promise = new Promise((resolve, reject) => {
+        sqs.sendMessage(params, (err, data) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve(data);
+            }
+        });
+    });
+    return promise;
 }
 
