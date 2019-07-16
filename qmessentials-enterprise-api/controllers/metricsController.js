@@ -14,8 +14,7 @@ exports.list = async function (req, res) {
 
 exports.save = async function (req, res) {
     try {
-        const db = new repository();
-        await db.saveMetric(req.body);
+        res.locals.queueHelper.addToWriteQueue({ type: 'metrics', content: req.body });
         res.sendStatus(200);
     }  
     catch (error) {

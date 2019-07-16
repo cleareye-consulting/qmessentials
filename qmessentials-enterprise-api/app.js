@@ -43,13 +43,21 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const queueHelper = require('./util/queueHelper');
+queueHelper.initiateWriteQueue();
+queueHelper.initiateBulkIntake();
+
+app.use((req, res, next) => {
+    res.locals.queueHelper = queueHelper;
+    next();
+});
+
 const indexRouter = require('./routes/index');
 const loginsRouter = require('./routes/logins');
 const usersRouter = require('./routes/users');
 const metricsRouter = require('./routes/metrics');
 const testPlansRouter = require('./routes/testPlans');
 const testPlanMetricsRouter = require('./routes/testPlanMetrics');
-
 
 app.use('/', indexRouter);
 app.use('/logins', loginsRouter);
@@ -79,9 +87,5 @@ app.use('/users', usersRouter);
 app.use('/metrics', metricsRouter);
 app.use('/test-plans', testPlansRouter);
 app.use('/test-plan-metrics', testPlanMetricsRouter);
-
-const queueHelper = require('./util/queueHelper');
-queueHelper.initiateBulkIntake();
-
 
 module.exports = app;

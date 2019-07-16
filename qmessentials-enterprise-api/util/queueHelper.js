@@ -1,13 +1,37 @@
 const AWS = require('aws-sdk');
 const config = require('../config');
+const Bull = require('bull');
+const repository = require('./repository');
 
 AWS.config.update({ region: config.awsQueueRegion });
+
+exports.initiateWriteQueue = () => {
+    writeQueue = new Bull('write-queue');
+    const db = new repository();
+    writeQueue.process(async job => {
+        try {
+            await db.saveRecord(job.data.content, job.data.type);
+            return Promise.resolve();
+        }
+        catch (error) {
+            return Promise.reject(error);
+        }
+    });
+}
+
+exports.addToWriteQueue = message => {
+    writeQueue.add(message);
+}
 
 exports.initiateBulkIntake = () => {
     const getBulkInserts = async () => {
         try {
-            const response = await queueHelper.readFromBulkIntakeQueue();
-            console.log(response.Messages);
+            const messages = await this.readFromBulkIntakeQueue();            
+            if (messages) {
+                for (let message of messages) {                    
+                    writeQueue.add({ type: message.MessageAttributes.type.StringValue, content: JSON.parse(message.Body) });
+                }
+            }
         }
         catch (error) {
             console.log(error);
@@ -32,12 +56,17 @@ exports.readFromBulkIntakeQueue = async () => {
                 reject(err);
             }
             else {
-                let messages = [];
-                for(let message of data.Messages) {
-                    messages.push(message);
-                    await deleteMessage(message.ReceiptHandle);
+                if (!data.Messages) {
+                    resolve();
                 }
-                resolve(data);
+                else {
+                    let messages = [];
+                    for (let message of data.Messages) {
+                        messages.push(message);
+                        await deleteMessage(message.ReceiptHandle);
+                    }
+                    resolve(data.Messages);
+                }
             }
         });
     })    

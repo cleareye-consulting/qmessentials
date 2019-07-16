@@ -8,6 +8,27 @@ const dbName = config.databaseName;
 
 module.exports = class repository {
 
+    async saveRecord(record, type) {
+        console.log('Saving record');
+        console.log(record);
+        const mongo = await MongoClient.connect(url, { useNewUrlParser: true });        
+        if (record._id) {
+            const id = record._id;
+            delete record._id;
+            await mongo.db(dbName).collection(type).replaceOne(
+                {
+                    _id: ObjectID(id)
+                },
+                record,
+                {}
+            )
+        }
+        else {
+            await mongo.db(dbName).collection('metrics').insertOne(record);  
+        }                
+        mongo.close();
+    }
+
     async listMetrics(filter) {
         const mongo = await MongoClient.connect(url, { useNewUrlParser: true });
         if (filter) {
