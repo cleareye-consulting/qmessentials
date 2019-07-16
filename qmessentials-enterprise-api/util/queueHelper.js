@@ -1,7 +1,21 @@
 const AWS = require('aws-sdk');
 const config = require('../config');
 
-AWS.config.update({region: config.awsQueueRegion});
+AWS.config.update({ region: config.awsQueueRegion });
+
+exports.initiateBulkIntake = () => {
+    const getBulkInserts = async () => {
+        try {
+            const response = await queueHelper.readFromBulkIntakeQueue();
+            console.log(response.Messages);
+        }
+        catch (error) {
+            console.log(error);
+        }
+        setImmediate(getBulkInserts);
+    }
+    setImmediate(getBulkInserts);
+}
 
 exports.readFromBulkIntakeQueue = async () => {
     const sqs = new AWS.SQS({ apiVersion: config.awsSqsApiVersion });

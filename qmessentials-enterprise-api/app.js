@@ -81,20 +81,7 @@ app.use('/test-plans', testPlansRouter);
 app.use('/test-plan-metrics', testPlanMetricsRouter);
 
 const queueHelper = require('./util/queueHelper');
-
-const getBulkInserts = async () => {
-    try {
-        const response = await queueHelper.readFromBulkIntakeQueue();
-        console.log(response.Messages);
-    }
-    catch (error) {
-        console.log(error);
-    }
-    setImmediate(getBulkInserts);
-}
-
-setImmediate(getBulkInserts);
-
+queueHelper.initiateBulkIntake();
 
 
 module.exports = app;
