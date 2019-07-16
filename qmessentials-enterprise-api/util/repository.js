@@ -10,19 +10,20 @@ module.exports = class repository {
 
     async saveRecord(record, type) {
         const mongo = await MongoClient.connect(url, { useNewUrlParser: true });        
-        if (record._id) {
-            const id = record._id;
-            delete record._id;
+        const localCopy = Object.assign({}, record);
+        if (localCopy._id) {
+            const id = localCopy._id;
+            delete localCopy._id;
             await mongo.db(dbName).collection(type).replaceOne(
                 {
                     _id: ObjectID(id)
                 },
-                record,
+                localCopy,
                 {}
             )
         }
         else {
-            await mongo.db(dbName).collection('metrics').insertOne(record);  
+            await mongo.db(dbName).collection('metrics').insertOne(localCopy);  
         }                
         mongo.close();
     }
