@@ -11,6 +11,7 @@ exports.initiateWriteQueue = () => {
     writeQueue.process(async job => {
         try {
             await db.saveRecord(job.data.content, job.data.type);
+            await this.writeToReportingDatabaseQueue(job.data.type, job.data.content);
             return Promise.resolve();
         }
         catch (error) {
@@ -96,12 +97,12 @@ exports.writeToReportingDatabaseQueue = async (messageType, message) => {
     const sqs = new AWS.SQS({ apiVersion: config.awsSqsApiVersion });
     const params = {
         MessageAttributes: {
-            "MessageType": {
+            "type": {
                 DataType: "String",
                 StringValue: messageType
             }
         },
-        MessageAttributes: JSON.stringify(message),
+        MessageBody: JSON.stringify(message),
         QueueUrl: config.toReportingQueueUrl
     };
     const promise = new Promise((resolve, reject) => {

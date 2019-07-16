@@ -9,8 +9,6 @@ const dbName = config.databaseName;
 module.exports = class repository {
 
     async saveRecord(record, type) {
-        console.log('Saving record');
-        console.log(record);
         const mongo = await MongoClient.connect(url, { useNewUrlParser: true });        
         if (record._id) {
             const id = record._id;
