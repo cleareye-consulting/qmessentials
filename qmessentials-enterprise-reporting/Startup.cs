@@ -10,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Amazon.Runtime;
+using Amazon.Extensions.NETCore.Setup;
+using Amazon.SQS;
 
 namespace qmessentials_enterprise_reporting
 {
@@ -26,6 +29,7 @@ namespace qmessentials_enterprise_reporting
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddAWSService(IAmazonSQS)
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
