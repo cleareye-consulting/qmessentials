@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace qmessentials_enterprise_reporting
+namespace QMEssentials.Reporting
 {
     public class Program
     {
@@ -19,6 +19,11 @@ namespace qmessentials_enterprise_reporting
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureLogging((hostingContext, logging) =>
+                {
+                    logging.AddConsole();
+                    logging.AddDebug();
+                })
                 .UseStartup<Startup>();
     }
 }

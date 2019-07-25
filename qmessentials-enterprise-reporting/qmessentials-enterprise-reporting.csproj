@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
-    <RootNamespace>qmessentials_enterprise_reporting</RootNamespace>
+    <RootNamespace>QMEssentials.Reporting</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +12,8 @@
     <PackageReference Include="AWSSDK.SQS" Version="3.3.100.47" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.2.4" />
   </ItemGroup>
 
 </Project>

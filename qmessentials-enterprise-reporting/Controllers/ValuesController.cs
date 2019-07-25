@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace qmessentials_enterprise_reporting.Controllers
+namespace QMEssentials.Reporting.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

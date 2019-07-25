@@ -13,8 +13,9 @@ using Microsoft.Extensions.Options;
 using Amazon.Runtime;
 using Amazon.Extensions.NETCore.Setup;
 using Amazon.SQS;
+using Microsoft.EntityFrameworkCore;
 
-namespace qmessentials_enterprise_reporting
+namespace QMEssentials.Reporting
 {
     public class Startup
     {
@@ -28,8 +29,14 @@ namespace qmessentials_enterprise_reporting
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var options = Configuration.GetAWSOptions();
+            services.AddDefaultAWSOptions(options);
+            Console.WriteLine(options.Region);
+            services.AddAWSService<IAmazonSQS>();
+            services.AddHostedService<Services.QueueIntakeService>();
+            //services.AddDbContext<ReportingDatabaseContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddSingleton<CalculationCache>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddAWSService(IAmazonSQS)
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,7 +51,6 @@ namespace qmessentials_enterprise_reporting
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
             app.UseHttpsRedirection();
             app.UseMvc();
         }
