@@ -21,14 +21,14 @@ export default props => {
     const submit = async event => {
         event.preventDefault()
         let newTestPlan = {
-            testPlanName : testPlanName,
-            isActive : true,
+            testPlanName: testPlanName,
+            isActive: true,
         };
         var api = new Api()
         if (duplicateOfTestPlanId) {
             const originalTestPlan = await api.getTestPlan(duplicateOfTestPlanId);
             newTestPlan.metrics = originalTestPlan.metrics;
-        }        
+        }
         await api.postTestPlan(newTestPlan)
         props.history.push('/test-plans')
     }

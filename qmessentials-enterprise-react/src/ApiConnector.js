@@ -25,11 +25,6 @@ export default class ApiConnector {
         return list[0]
     }
 
-    async getMultipleMetrics(ids) {
-        const list = await this.listMetrics(({ _id: { $in: ids } })) //TODO: figure out a way to do this without using MongoDB query syntax
-        return list
-    }
-
     async postMetric(metric) {
         await axios.post(process.env.REACT_APP_API_ENDPOINT + '/metrics', metric)
     }
@@ -52,17 +47,5 @@ export default class ApiConnector {
         await axios.post(process.env.REACT_APP_API_ENDPOINT + '/test-plans', testPlan)
     }
 
-    async listTestPlanMetrics(filter) {
-        const testPlanMetrics = await axios.get(process.env.REACT_APP_API_ENDPOINT + '/test-plan-metrics', {
-            params: {
-                filter: filter
-            }
-        })
-        return testPlanMetrics.data
-    }
-
-    async postTestPlanMetric(testPlanMetric) {
-        await axios.post(process.env.REACT_APP_API_ENDPOINT + '/test-plan-metrics', testPlanMetric)
-    }
 
 }

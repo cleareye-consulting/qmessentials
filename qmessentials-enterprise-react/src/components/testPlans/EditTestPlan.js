@@ -13,7 +13,7 @@ export default props => {
             _id: props.match.params.id,
             isActive: event.target.checked //using event value rather than state value because state value may not be updated yet, and I don't really care
         }
-        var api = new ApiConnector()
+        const api = new ApiConnector()
         await api.postTestPlan(testPlan)
     }
 
@@ -21,13 +21,15 @@ export default props => {
         (async () => {
             const id = props.match.params.id
             if (id) {
-                var api = new ApiConnector()
-                var testPlan = await api.getTestPlan(id)
+                const api = new ApiConnector()
+                const testPlan = await api.getTestPlan(id)
                 setTestPlanName(testPlan.testPlanName)
                 setIsActive(testPlan.isActive)
-                if (testPlan.metrics.length) {
-                    setMetrics(await api.getMultipleMetrics(testPlan.metrics))
+                for (let tpm of testPlan.metrics) {
+                    const metric = await api.getMetric(tpm.metricId)
+                    tpm.metricName = metric.metricName
                 }
+                setMetrics(testPlan.metrics)
             }
         })()
     }, [props.match.params.id])
@@ -65,24 +67,26 @@ export default props => {
                     <tbody>
                         {
                             metrics.map(metric =>
-                                <tr key={metric._id}>                                            
+                                <tr key={metric.metricId}>                                            
                                     <td>{metric.order}</td>
+                                    <td>{metric.metricName}</td>
                                     <td>{metric.qualifiers}</td>
                                     <td>{metric.usage}</td>
                                     <td>{metric.criteria}</td>
                                     <td>{metric.units}</td>
                                     <td>{metric.isNullable}</td>
                                     <td>{metric.isActive}</td>
-                                    <td><button type="button" className="btn btn-sm btn-outline-primary" data-testPlanMetricId={metric._id}>Edit</button></td>
+                                    <td><Link className="btn btn-sm btn-outline-primary" to={`/test-plans/${props.match.params.id}/metrics/${metric.metricId}/edit`}>Edit</Link></td>
                                 </tr>
                             )
                         }
                     </tbody>
                 </table>
+                <div className="form-group">                    
+                    <Link to={`/test-plans/${props.match.params.id}/metrics/create`}>Add Metric</Link>
+                </div>
                 <div className="form-group">
-                    <div className="control-label">
-                        <Link className="btn btn-default" to="/test-plans">Return to List</Link>
-                    </div>
+                    <Link className="btn btn-outline-secondary" to="/test-plans">Return to List</Link>
                 </div>
             </form>
         </>
