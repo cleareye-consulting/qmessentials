@@ -12,8 +12,6 @@ export default class ApiConnector {
     }
 
     async listMetrics(filter) {
-        console.log('Auth header: ')
-        console.log(axios.defaults.headers.common['Authorization']);
         const metrics = await axios.get(process.env.REACT_APP_API_ENDPOINT + '/metrics', {
             params: {
                 filter: filter
@@ -25,6 +23,11 @@ export default class ApiConnector {
     async getMetric(id) {
         const list = await this.listMetrics({ _id: id })
         return list[0]
+    }
+
+    async getMultipleMetrics(ids) {
+        const list = await this.listMetrics(({ _id: { $in: ids } })) //TODO: figure out a way to do this without using MongoDB query syntax
+        return list
     }
 
     async postMetric(metric) {

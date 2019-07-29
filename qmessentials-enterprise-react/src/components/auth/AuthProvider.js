@@ -17,8 +17,6 @@ export default props => {
             sessionStorage.removeItem('userId')
         }
         axios.defaults.headers.common['Authorization'] = (token.length > 0) ? ('Bearer ' + token) : null;
-        console.log('Auth header: ')
-        console.log(axios.defaults.headers.common['Authorization']);
     }
     useEffect(() => {
         if (sessionStorage['authToken']) {
