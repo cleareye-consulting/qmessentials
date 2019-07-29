@@ -1,8 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import UserNavItem from './auth/UserNavItem';
-import AuthContext from './auth/AuthContext';
-import Login from './auth/Login';
+import UserNavItem from './auth/UserNavItem'
+import AuthContext from './auth/AuthContext'
+import Login from './auth/Login'
 
 export default props => {
     return (

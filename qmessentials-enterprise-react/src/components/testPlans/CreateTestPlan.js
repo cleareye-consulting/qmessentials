@@ -16,7 +16,7 @@ export default props => {
             const testPlans = (await api.listTestPlans({ isActive: true }))
             setAllTestPlans(testPlans)
         })()
-    })
+    }, [])
 
     const submit = async event => {
         event.preventDefault()
