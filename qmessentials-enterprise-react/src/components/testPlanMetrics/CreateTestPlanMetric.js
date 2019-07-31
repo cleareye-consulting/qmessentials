@@ -37,6 +37,25 @@ export default props => {
         })()
     }, [metricId])
 
+    const handleQualifierClick = event => {
+        const value = event.target.value
+        const checked = event.target.checked
+        let newArray = Array.from(qualifiers)        
+        if (checked) {
+            newArray.push(value)
+        }
+        else {
+            newArray = newArray.filter(q => q !== value)
+        }
+        let sortedArray = []
+        for (const availableQualifier of availableQualifiers) { //doing this to put qualifiers in same order as available qualifiers
+            if (newArray.includes(availableQualifier)) {
+                sortedArray.push(availableQualifier)
+            }
+        }
+        setQualifiers(sortedArray)
+    }
+
     const submit = async event => {
         event.preventDefault()
         const api = new Api()
@@ -71,10 +90,15 @@ export default props => {
                     </select>
                 </div>
                 <div className="formGroup">
-                    <label className="control-label" htmlFor="qualifiers">Qualifiers</label>
-                    <select className="form-control" id="qualifiers" multiple={true} disabled={!metricId || !availableQualifiers.length} onChange={event => setQualifiers(Array.from(event.target.options).filter(opt => opt.selected).map(opt => opt.value))}>
-                        {availableQualifiers.map(aq => <option key={aq} value={aq}>{aq}</option>)}
-                    </select>
+                    <label className="control-label mr-3" htmlFor="qualifiers">Qualifiers</label>
+                    {
+                        availableQualifiers.map(aq => 
+                            <div key={aq} className="form-check form-check-inline mx-1">
+                                <input className="form-check-input" type="checkbox" id={`qualifiers_${aq}`} name="qualifiers" defaultValue={aq} onChange={handleQualifierClick} />
+                                <label className="form-check-label" htmlFor={`qualifiers_${aq}`}>{aq}</label>
+                            </div>
+                        )
+                    }                    
                 </div>
                 <div className="formGroup">
                     <label className="control-label" htmlFor="usage">Usage</label>

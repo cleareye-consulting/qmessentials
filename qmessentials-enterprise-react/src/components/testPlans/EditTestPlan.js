@@ -53,12 +53,11 @@ export default props => {
                 <table className="table">
                     <thead>
                         <tr>
-                            <th>Order</th>
                             <th>Metric</th>
                             <th>Qualifiers</th>
                             <th>Usage</th>
                             <th>Criteria</th>
-                            <th>Units</th>
+                            <th>Unit</th>
                             <th>Nullable</th>
                             <th>Active</th>
                             <th>&nbsp;</th>
@@ -67,15 +66,14 @@ export default props => {
                     <tbody>
                         {
                             metrics.map(metric =>
-                                <tr key={metric.metricId}>                                            
-                                    <td>{metric.order}</td>
+                                <tr key={metric.metricId + metric.qualifiers.join('')}>                                            
                                     <td>{metric.metricName}</td>
-                                    <td>{metric.qualifiers}</td>
+                                    <td>{metric.qualifiers.join(', ')}</td>
                                     <td>{metric.usage}</td>
                                     <td>{metric.criteria}</td>
-                                    <td>{metric.units}</td>
-                                    <td>{metric.isNullable}</td>
-                                    <td>{metric.isActive}</td>
+                                    <td>{metric.unit}</td>
+                                    <td>{metric.isNullable ? 'Y' : ''}</td>
+                                    <td>{metric.isActive ? 'Y' : ''}</td>
                                     <td><Link className="btn btn-sm btn-outline-primary" to={`/test-plans/${props.match.params.id}/metrics/${metric.metricId}/edit`}>Edit</Link></td>
                                 </tr>
                             )
