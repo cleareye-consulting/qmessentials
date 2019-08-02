@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link} from 'react-router-dom'
 import Api from '../../ApiConnector'
+import CriteriaEditor from './CriteriaEditor'
 
 export default props => {
 
@@ -14,6 +15,7 @@ export default props => {
     const [unit, setUnit] = useState('')
     const [isNullable, setIsNullable] = useState(false)
     const [isActive, setIsActive] = useState(false)
+    const [resultType, setResultType] = useState('')
 
     useEffect(() => {
         (async () => {
@@ -23,12 +25,13 @@ export default props => {
             const testPlanMetric = testPlan.metrics.filter(tpm => tpm.metricId === props.match.params.metricId)[0]
             setQualifiers(testPlanMetric.qualifiers)
             setUsage(testPlanMetric.usage)
-            setCriteria(testPlanMetric.criteria)            
+            setCriteria(testPlanMetric.criteria)
             setUnit(testPlanMetric.unit)
             setIsNullable(testPlanMetric.isNullable)
             setIsActive(testPlanMetric.isActive)
-            const metric = await api.getMetric(props.match.params.metricId)            
+            const metric = await api.getMetric(props.match.params.metricId)
             setMetricName(metric.metricName)
+            setResultType(metric.resultType)
             setAvailableQualifiers(metric.availableQualifiers)
             setAvailableUnits(metric.availableUnits)
         })()
@@ -37,7 +40,7 @@ export default props => {
     const handleQualifierClick = event => {
         const value = event.target.value
         const checked = event.target.checked
-        let newArray = Array.from(qualifiers)        
+        let newArray = Array.from(qualifiers)
         if (checked) {
             newArray.push(value)
         }
@@ -67,7 +70,8 @@ export default props => {
         await api.postTestPlan(testPlan)
         props.history.push(`/test-plans/${props.match.params.testPlanId}/edit`)
     }
-        return (
+
+    return (
         <>
             <h3>Edit Test Plan Metric</h3>
             <form className="form">
@@ -81,8 +85,8 @@ export default props => {
                 </div>
                 <div className="formGroup">
                     <label className="control-label mr-3" htmlFor="qualifiers">Qualifiers</label>
-                    {                        
-                        availableQualifiers.map(aq => 
+                    {
+                        availableQualifiers.map(aq =>
                             <div key={aq} className="form-check form-check-inline mx-1">
                                 <input className="form-check-input" type="checkbox" id={`qualifiers_${aq}`} name="qualifiers" defaultValue={aq} defaultChecked={qualifiers.includes(aq)} onChange={handleQualifierClick} />
                                 <label className="form-check-label" htmlFor={`qualifiers_${aq}`}>{aq}</label>
@@ -96,11 +100,11 @@ export default props => {
                 </div>
                 <div className="formGroup">
                     <label className="control-label" htmlFor="criteria">Criteria</label>
-                        <input className="form-control" type="text" id="criteria" defaultValue={criteria} onChange={event => setCriteria(event.target.value)} />
+                    <CriteriaEditor resultType={resultType} criteria={criteria} setCriteria={setCriteria} />
                 </div>
                 <div className="form-group">
                     <div className="form-check">
-                            <input className="form-check-input" type="checkbox" id="isNullable" checked={isNullable} onChange={event => setIsNullable(event.target.checked)} />
+                        <input className="form-check-input" type="checkbox" id="isNullable" checked={isNullable} onChange={event => setIsNullable(event.target.checked)} />
                         <label className="form-check-label" htmlFor="isNullable">
                             Nullable
                         </label>
@@ -108,7 +112,7 @@ export default props => {
                 </div>
                 <div className="form-group">
                     <label className="control-label" htmlFor="unit">Unit</label>
-                        <select className="form-control" id="unit" disabled={!availableUnits.length} value={unit} onChange={event => setUnit(event.target.value)}>
+                    <select className="form-control" id="unit" disabled={!availableUnits.length} value={unit} onChange={event => setUnit(event.target.value)}>
                         <option value="">&nbsp;</option>
                         {availableUnits.map(au => <option key={au} value={au}>{au}</option>)}
                     </select>

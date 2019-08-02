@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link} from 'react-router-dom'
 import Api from '../../ApiConnector'
+import CriteriaEditor from './CriteriaEditor'
 
 export default props => {
 
@@ -14,6 +15,7 @@ export default props => {
     const [availableUnits, setAvailableUnits] = useState([])
     const [unit, setUnit] = useState('')
     const [isNullable, setIsNullable] = useState(false)
+    const [resultType, setResultType] = useState('')
 
     useEffect(() => {
         (async () => {
@@ -34,6 +36,7 @@ export default props => {
             const metric = await api.getMetric(metricId)
             setAvailableQualifiers(metric.availableQualifiers)
             setAvailableUnits(metric.availableUnits)
+            setResultType(metric.resultType)
         })()
     }, [metricId])
 
@@ -106,7 +109,7 @@ export default props => {
                 </div>
                 <div className="formGroup">
                     <label className="control-label" htmlFor="criteria">Criteria</label>
-                    <input className="form-control" type="text" id="criteria" onChange={event => setCriteria(event.target.value)} />
+                    <CriteriaEditor resultType={resultType} setCriteria={setCriteria}/>
                 </div>
                 <div className="form-group">
                     <div className="form-check">

@@ -1,11 +1,28 @@
 import React, { useState, useEffect } from 'react'
 import { Link} from 'react-router-dom'
 import ApiConnector from '../../ApiConnector';
+import { useCriteria } from '../../Hooks'
+
+const TestPlan = props => {
+    const [, format] = useCriteria(props.tpm.resultType)
+    return (
+        <tr>
+            <td>{props.tpm.metricName}</td>
+            <td>{props.tpm.qualifiers.join(', ')}</td>
+            <td>{props.tpm.usage}</td>
+            <td>{format(props.tpm.criteria)}</td>
+            <td>{props.tpm.unit}</td>
+            <td>{props.tpm.isNullable ? 'Y' : ''}</td>
+            <td>{props.tpm.isActive ? 'Y' : ''}</td>
+            <td><Link className="btn btn-sm btn-outline-primary" to={`/test-plans/${props.testPlanId}/metrics/${props.tpm.metricId}/edit`}>Edit</Link></td>
+        </tr>
+    )
+}
 
 export default props => {
     const [testPlanName, setTestPlanName] = useState('')
     const [isActive, setIsActive] = useState(false)
-    const [metrics, setMetrics] = useState([])
+    const [metrics, setMetrics] = useState([])    
 
     const changeIsActive = async event => {
         setIsActive(event.target.checked)
@@ -26,8 +43,9 @@ export default props => {
                 setTestPlanName(testPlan.testPlanName)
                 setIsActive(testPlan.isActive)
                 for (let tpm of testPlan.metrics) {
-                    const metric = await api.getMetric(tpm.metricId)
+                    const metric = await api.getMetric(tpm.metricId)                    
                     tpm.metricName = metric.metricName
+                    tpm.resultType = metric.resultType
                 }
                 setMetrics(testPlan.metrics)
             }
@@ -65,18 +83,7 @@ export default props => {
                     </thead>
                     <tbody>
                         {
-                            metrics.map(metric =>
-                                <tr key={metric.metricId + metric.qualifiers.join('')}>                                            
-                                    <td>{metric.metricName}</td>
-                                    <td>{metric.qualifiers.join(', ')}</td>
-                                    <td>{metric.usage}</td>
-                                    <td>{metric.criteria}</td>
-                                    <td>{metric.unit}</td>
-                                    <td>{metric.isNullable ? 'Y' : ''}</td>
-                                    <td>{metric.isActive ? 'Y' : ''}</td>
-                                    <td><Link className="btn btn-sm btn-outline-primary" to={`/test-plans/${props.match.params.id}/metrics/${metric.metricId}/edit`}>Edit</Link></td>
-                                </tr>
-                            )
+                            metrics.map(metric => <TestPlan testPlanId={props.match.params.id} tpm={metric} key={metric.metricId + metric.qualifiers.join('')}/>)
                         }
                     </tbody>
                 </table>
