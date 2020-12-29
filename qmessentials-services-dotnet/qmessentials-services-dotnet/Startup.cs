@@ -71,7 +71,7 @@ namespace QMEssentials.Services
                     return; //end execution here
                 }
                 if (endpoint.StartsWith("/Reporting/", StringComparison.OrdinalIgnoreCase) && !isReportingService) {
-                    return; //end execution here
+                    return; 
                 }
                 await next(context);
             });
