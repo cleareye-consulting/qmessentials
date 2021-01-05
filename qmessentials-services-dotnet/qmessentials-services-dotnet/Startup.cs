@@ -41,7 +41,14 @@ namespace QMEssentials.Services
             if (isQueueProcessor) {
                 services.AddHostedService<QueueProcessor>(); 
             }
-
+            services.AddSingleton<IObservationQueue>(provider =>
+            {
+                if (Configuration["QueueType"].Equals("internal", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new InternalObservationQueue();
+                }
+                throw new InvalidOperationException();
+            });
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -65,7 +72,8 @@ namespace QMEssentials.Services
 
             app.UseAuthorization();
 
-            app.Use(next => async context => {
+            //Don't listen on endpoints where the corresponding service is flagged off in the application settings. 
+             app.Use(next => async context => {
                 var endpoint = context.Request.Path.ToString();
                 if (endpoint.StartsWith("/Configuration/", StringComparison.OrdinalIgnoreCase) && !isConfigurationService) {
                     return; //end execution here

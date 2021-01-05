@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>qmessentials_services_dotnet</RootNamespace>
+    <RootNamespace>QMEssentials</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

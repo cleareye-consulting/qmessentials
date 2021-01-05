@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using QMEssentials.Repositories;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,10 +10,14 @@ namespace QMEssentials.Services
     public class QueueProcessor : BackgroundService
     {
 
+        private readonly IObservationQueue queue;
+        private readonly IObservationsRepository observationsRepository;
         private readonly ILogger<QueueProcessor> logger;
 
-        public QueueProcessor(ILogger<QueueProcessor> logger)
+        public QueueProcessor(IObservationQueue queue, IObservationsRepository observationsRepository, ILogger<QueueProcessor> logger)
         {
+            this.queue = queue;
+            this.observationsRepository = observationsRepository;
             this.logger = logger;
         }
 
@@ -20,8 +25,9 @@ namespace QMEssentials.Services
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                logger.LogInformation("QueueProcessor running");
-                await Task.Delay(TimeSpan.FromMinutes(5));
+                await Task.Yield();
+                var observation = await queue.GetNextObservation();
+                await observationsRepository.AddObservation(observation);
             }
         }
     }

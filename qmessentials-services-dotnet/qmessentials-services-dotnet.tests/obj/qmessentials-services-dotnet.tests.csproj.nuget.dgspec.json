@@ -1,34 +1,40 @@
 {
   "format": 1,
   "restore": {
-    "/home/jmgant/Source/qmessentials/qmessentials-services-dotnet/qmessentials-services-dotnet.tests/qmessentials-services-dotnet.tests.csproj": {}
+    "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet.tests\\qmessentials-services-dotnet.tests.csproj": {}
   },
   "projects": {
-    "/home/jmgant/Source/qmessentials/qmessentials-services-dotnet/qmessentials-services-dotnet.tests/qmessentials-services-dotnet.tests.csproj": {
+    "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet.tests\\qmessentials-services-dotnet.tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/jmgant/Source/qmessentials/qmessentials-services-dotnet/qmessentials-services-dotnet.tests/qmessentials-services-dotnet.tests.csproj",
+        "projectUniqueName": "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet.tests\\qmessentials-services-dotnet.tests.csproj",
         "projectName": "qmessentials-services-dotnet.tests",
-        "projectPath": "/home/jmgant/Source/qmessentials/qmessentials-services-dotnet/qmessentials-services-dotnet.tests/qmessentials-services-dotnet.tests.csproj",
-        "packagesPath": "/home/jmgant/.nuget/packages/",
-        "outputPath": "/home/jmgant/Source/qmessentials/qmessentials-services-dotnet/qmessentials-services-dotnet.tests/obj/",
+        "projectPath": "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet.tests\\qmessentials-services-dotnet.tests.csproj",
+        "packagesPath": "C:\\Users\\jmgan\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet.tests\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "/usr/share/dotnet/sdk/NuGetFallbackFolder"
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "/home/jmgant/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\jmgan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net5.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net5.0": {
             "targetAlias": "net5.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet\\qmessentials-services-dotnet.csproj": {
+                "projectPath": "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet\\qmessentials-services-dotnet.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -73,11 +79,94 @@
           "assetTargetFallback": true,
           "warn": true,
           "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/5.0.101/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet\\qmessentials-services-dotnet.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet\\qmessentials-services-dotnet.csproj",
+        "projectName": "qmessentials-services-dotnet",
+        "projectPath": "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet\\qmessentials-services-dotnet.csproj",
+        "packagesPath": "C:\\Users\\jmgan\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\jmgan\\source\\repos\\qmessentials\\qmessentials-services-dotnet\\qmessentials-services-dotnet\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\jmgan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[5.0.1, )",
+              "noWarn": [
+                "NU1605"
+              ]
+            },
+            "Microsoft.AspNetCore.Authentication.OpenIdConnect": {
+              "target": "Package",
+              "version": "[5.0.1, )",
+              "noWarn": [
+                "NU1605"
+              ]
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[5.6.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
         }
       }
     }
