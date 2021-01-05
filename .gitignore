@@ -2,7 +2,6 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-*.cs
 /.vs
 *.cache
 /qmessentials-services-dotnet/.vs/qmessentials-services-dotnet/DesignTimeBuild

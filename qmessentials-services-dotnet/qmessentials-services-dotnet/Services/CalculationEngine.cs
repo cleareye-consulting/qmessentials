@@ -13,11 +13,13 @@ namespace QMEssentials.Services
     {
         private readonly IObservationQueue observationQueue;
         private readonly IObservationsRepository observationsRepository;
+        private readonly IReportingRepository reportingRepository;
 
-        public CalculationEngine(IObservationQueue observationQueue, IObservationsRepository observationsRepository)
+        public CalculationEngine(IObservationQueue observationQueue, IObservationsRepository observationsRepository, IReportingRepository reportingRepository)
         {
             this.observationQueue = observationQueue;
             this.observationsRepository = observationsRepository;
+            this.reportingRepository = reportingRepository;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -28,6 +30,7 @@ namespace QMEssentials.Services
                 var allObservationsForLot =
                     await observationsRepository.ListObservations(new ObservationCriteria { LotIds = new[] { triggerObservation.LotId } });
                 var lotCalcuations = GetLotCalculations(triggerObservation.LotId, allObservationsForLot);
+                await reportingRepository.AddLotCalculations(lotCalcuations);
             }
         }
 
@@ -39,7 +42,7 @@ namespace QMEssentials.Services
             {
                 var valueAsList = new List<double> { observation.Value };
                 if (metricTable.ContainsKey(observation.MetricId))
-                {                    
+                {
                     metricTable[observation.MetricId] = metricTable[observation.MetricId].Concat(valueAsList);
                 }
                 else
@@ -69,11 +72,11 @@ namespace QMEssentials.Services
                     throw new InvalidOperationException(); //should never get here
                 }
                 calculations.Average = (calculations.Sum ?? 0D) / calculations.Count;
-                var firstQuartilePosition = (int) Math.Floor(calculations.Count.Value / 4D);
+                var firstQuartilePosition = (int)Math.Floor(calculations.Count.Value / 4D);
                 calculations.FirstQuartile = metricValuesSorted.ElementAt(firstQuartilePosition);
-                var medianPosition = (int) Math.Ceiling(calculations.Count.Value / 2D);
+                var medianPosition = (int)Math.Ceiling(calculations.Count.Value / 2D);
                 calculations.Median = metricValuesSorted.ElementAt(medianPosition);
-                var thirdQuartilePosition = (int) Math.Ceiling(calculations.Count.Value * 3D / 4D);
+                var thirdQuartilePosition = (int)Math.Ceiling(calculations.Count.Value * 3D / 4D);
                 calculations.ThirdQuartile = metricValuesSorted.ElementAt(thirdQuartilePosition);
                 double sumOfSquaredDeviations = 0D;
                 foreach (var value in metricValuesSorted)
