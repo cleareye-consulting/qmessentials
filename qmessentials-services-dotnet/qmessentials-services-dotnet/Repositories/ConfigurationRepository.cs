@@ -1,12 +1,37 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Npgsql;
 using QMEssentials.Models;
 
 namespace QMEssentials.Repositories
 {
     public class ConfigurationRepository : IConfigurationRepository
     {
+
+        private readonly string configurationConnectionString;
+
+        private DbConnection GetConnection()
+        {
+            return new NpgsqlConnection(configurationConnectionString);
+        }
+
+        private DbCommand GetDbCommand(string sql, DbConnection connection)
+        {
+            return new NpgsqlCommand(sql, (NpgsqlConnection)connection) { CommandType = System.Data.CommandType.Text };
+        }
+
+        private async Task<DbDataReader> GetDataReader(DbCommand command)
+        {
+            return await command.ExecuteReaderAsync();
+        }
+
+        public ConfigurationRepository(IConfiguration configuration)
+        {
+            configurationConnectionString = configuration.GetConnectionString("Configuration");
+        }
 
         public Task<Product> SelectProduct(string productId)
         {
@@ -43,8 +68,18 @@ namespace QMEssentials.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<Product>> ListProducts(ProductCriteria? criteria)
+        public async Task<IEnumerable<Product>> ListProducts(ProductCriteria? criteria)
         {
+            using var cn = GetConnection();
+            await cn.OpenAsync();
+            var sql = "select ProductId, ProductName from Product where ProductId like ";
+            
+            using var cmd = GetDbCommand(sql, cn);
+            using var reader = await GetDataReader(cmd);
+            while (await reader.ReadAsync())
+            {
+
+            }
             throw new NotImplementedException();
         }
 
