@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using System.Linq;
 
 using QMEssentials.Models;
+using System.Collections.Generic;
 
 namespace QMEssentials.Repositories
 {
@@ -17,6 +18,8 @@ namespace QMEssentials.Repositories
         Task RemoveItem(string itemId);
 
         Task<Product> SelectProduct(string productId);
+
+        Task<IEnumerable<Product>> ListProducts(ProductCriteria? criteria);
 
         Task<string> AddProduct(Product product);
 
