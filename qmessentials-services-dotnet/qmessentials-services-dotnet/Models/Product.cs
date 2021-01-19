@@ -2,7 +2,13 @@ namespace QMEssentials.Models
 {
     public record Product
     {
-        public string ProductId { get; init; }
-        public string ProductName { get; init; }
+        public Product(string productId, string productName)
+        {
+            ProductId = productId;
+            ProductName = productName;
+        }
+
+        public string ProductId { get; }
+        public string ProductName { get; }
     }
 }
