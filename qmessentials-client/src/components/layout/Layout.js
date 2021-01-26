@@ -7,7 +7,7 @@ export default function Layout({children}) {
         <>
         <header>
             <nav className="navbar">
-                <div class="container-fluid">
+                <div className="container-fluid">
                     <Link className="navbar-brand" to="/">
                         <img src={logo} alt="logo" height="80"/>
                         <span>QMEssentials</span>

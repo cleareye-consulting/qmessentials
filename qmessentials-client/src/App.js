@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Route, Switch } from 'react-router-dom'
+import { BrowserRouter, Route } from 'react-router-dom'
 import './App.scss'
 import Products from './components/configuration/product/Products'
 import Home from './components/Home'
