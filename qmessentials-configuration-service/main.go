@@ -103,27 +103,8 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func (f *fooHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	w.Write([]byte(f.Message))
-// }
-
-// func barHandler(w http.ResponseWriter, r *http.Request) {
-// 	w.Write([]byte("bar called"))
-// }
-
 func main() {
-	// http.Handle("/foo", &fooHandler{Message: "foo called"})
-	// http.HandleFunc("/bar", barHandler)
 	http.HandleFunc("/products", productsHandler)
 	http.HandleFunc("/products/", productHandler)
 	http.ListenAndServe(":5000", nil)
-}
-
-func parse() {
-	body := ""
-	product := models.Product{}
-	err := json.Unmarshal([]byte(body), &product)
-	if err != nil {
-		panic(err)
-	}
 }
