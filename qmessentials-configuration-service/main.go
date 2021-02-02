@@ -4,23 +4,29 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/cleareyeconsulting/qmessentials/configuration/models"
 	"github.com/cleareyeconsulting/qmessentials/configuration/repositories"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func productsHandler(w http.ResponseWriter, r *http.Request) {
+	log.Debug().Stringer("url", r.URL)
 	productRepo := repositories.ProductRepository{}
 	switch r.Method {
 	case http.MethodGet:
 		products, err := productRepo.List()
 		if err != nil {
+			log.Error().Err(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		responseContent, err := json.Marshal(products)
 		if err != nil {
+			log.Error().Err(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -51,6 +57,7 @@ func productsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func productHandler(w http.ResponseWriter, r *http.Request) {
+	log.Debug().Stringer("url", r.URL)
 	productRepo := repositories.ProductRepository{}
 	urlPathSegments := strings.Split(r.URL.Path, "products/")
 	productID := urlPathSegments[len(urlPathSegments)-1]
@@ -104,6 +111,10 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Debug().Msg("Started")
 	http.HandleFunc("/products", productsHandler)
 	http.HandleFunc("/products/", productHandler)
 	http.ListenAndServe(":5000", nil)
