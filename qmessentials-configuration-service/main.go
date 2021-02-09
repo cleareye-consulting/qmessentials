@@ -13,20 +13,25 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func defaultHandler(w http.ResponseWriter, r *http.Request) {
+	log.Debug().Msg("Home called")
+	w.Write([]byte("home"))
+}
+
 func productsHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug().Stringer("url", r.URL)
+	//log.Debug().Stringer("url", r.URL)
 	productRepo := repositories.ProductRepository{}
 	switch r.Method {
 	case http.MethodGet:
 		products, err := productRepo.List()
 		if err != nil {
-			log.Error().Err(err)
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		responseContent, err := json.Marshal(products)
 		if err != nil {
-			log.Error().Err(err)
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -36,16 +41,19 @@ func productsHandler(w http.ResponseWriter, r *http.Request) {
 		var product models.Product
 		bodyBytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		err = json.Unmarshal(bodyBytes, &product)
 		if err != nil {
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		err = productRepo.Add(&product)
 		if err != nil {
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -63,6 +71,7 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 	productID := urlPathSegments[len(urlPathSegments)-1]
 	product, err := productRepo.Select(productID)
 	if err != nil {
+		log.Error().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -70,6 +79,7 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		productJSON, err := json.Marshal(product)
 		if err != nil {
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -78,12 +88,14 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		bodyBytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		var product models.Product
 		err = json.Unmarshal(bodyBytes, &product)
 		if err != nil {
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -93,6 +105,7 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err = productRepo.Update(productID, &product)
 		if err != nil {
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -100,6 +113,7 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		err := productRepo.Delete(productID)
 		if err != nil {
+			log.Error().Err(err).Msg("")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -115,6 +129,7 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	log.Debug().Msg("Started")
+	http.HandleFunc("/", defaultHandler)
 	http.HandleFunc("/products", productsHandler)
 	http.HandleFunc("/products/", productHandler)
 	http.ListenAndServe(":5000", nil)
