@@ -94,7 +94,7 @@ func handleGetUsers(w http.ResponseWriter, r *http.Request) {
 		isActive = nil
 	}
 	repo := repositories.UserRepository{}
-	users, err := repo.GetUserBySearch(name, email, isActive)
+	users, err := repo.GetUsersBySearch(name, email, isActive)
 	if err != nil {
 		log.Error().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
