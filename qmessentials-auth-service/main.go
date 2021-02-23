@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -120,12 +121,30 @@ func handlePostUser(w http.ResponseWriter, r *http.Request) {
 	}
 	var user models.User
 	json.Unmarshal(bodyBytes, &user)
+	if user.HashedPassword != "" {
+		log.Warn().Msgf("POST received for userID %s with hashed password already set", user.ID)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var bcryptUtil utilities.BcryptUtil
+	randomPassword := bcryptUtil.GenerateRandomPassword()
+	encryptedPassword, err := bcryptUtil.Encrypt(randomPassword)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user.HashedPassword = string(encryptedPassword)
+	user.IsPasswordChangeRequired = true
 	id, err := repo.AddUser(&user)
 	if err != nil {
 		log.Error().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	var emailUtil utilities.EmailUtil
+	welcomeMessage := fmt.Sprintf("Your QMEssentials account has been created. The user ID is %s. The initial password is %s. This password will need to be changed on the first login.", user.ID, randomPassword)
+	emailUtil.SendEmail(user.EmailAddress, "New QMEssentials Account Info", welcomeMessage)
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(id))
 }
@@ -220,11 +239,81 @@ func handlePostLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlePostToken(w http.ResponseWriter, r *http.Request) {
-	//verify JWT
-	//if verified, retrieve and return user
-	//if not verified, return 401
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var jwtUtil utilities.JWTUtil
+	userID, err := jwtUtil.VerifyToken(string(bodyBytes))
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if userID == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	repo := repositories.UserRepository{}
+	user, err := repo.GetUserByID(userID)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	usersJSON, err := json.Marshal(user)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(usersJSON)
 }
 
 func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
-
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	type passwordChangeRequest struct {
+		userID      string
+		oldPassword string
+		newPassword string
+	}
+	var request passwordChangeRequest
+	err = json.Unmarshal(bodyBytes, &request)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	repo := repositories.UserRepository{}
+	user, err := repo.GetUserByID(request.userID)
+	var bcryptUtil utilities.BcryptUtil
+	match, err := bcryptUtil.Compare(request.oldPassword, user.HashedPassword)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if !match {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	hashedNewPassword, err := bcryptUtil.Encrypt(request.newPassword)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user.HashedPassword = string(hashedNewPassword)
+	repo.UpdateUser(request.userID, user)
+	var emailUtil utilities.EmailUtil
+	emailUtil.SendEmail(user.EmailAddress, "Password changed", "Your QMEssentials password has been changed. If you did not request this change, please contact your system administrator.")
+	w.WriteHeader(http.StatusOK)
 }
