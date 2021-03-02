@@ -33,6 +33,12 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	log.Debug().Msg("Started")
 
+	err := bootstrapAdminUser()
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		panic(err)
+	}
+
 	r := chi.NewRouter()
 	r.Get("/users/{id}", handleGetUser)
 	r.Get("/users", handleGetUsers)
@@ -318,4 +324,19 @@ func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 	var emailUtil utilities.EmailUtil
 	emailUtil.SendEmail(user.EmailAddress, "Password changed", "Your QMEssentials password has been changed. If you did not request this change, please contact your system administrator.")
 	w.WriteHeader(http.StatusOK)
+}
+
+func bootstrapAdminUser() error {
+	repo := repositories.UserRepository{}
+	isNeeded, err := repo.IsDefaultAdminNeeded()
+	if err != nil {
+		return err
+	}
+	if !isNeeded {
+		return nil
+	}
+	log.Warn().Msg("No administrator found. Bootstrapping default admin user.")
+	bcrypt := utilities.BcryptUtil{}
+	err = repo.CreateDefaultAdmin(bcrypt.Encrypt)
+	return err
 }

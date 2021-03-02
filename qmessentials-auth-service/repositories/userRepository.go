@@ -139,3 +139,78 @@ func (ur *UserRepository) UpdateUser(id string, user *models.User) error {
 	tx.Commit()
 	return nil
 }
+
+func (ur *UserRepository) IsDefaultAdminNeeded() (bool, error) {
+	db := pg.Connect(&pg.Options{
+		User:     os.Getenv("DATABASE_USER"),
+		Database: os.Getenv("DATABASE_NAME"),
+	})
+	defer db.Close()
+	var claims []models.UserClaim
+	err := db.Model(&claims).Where("claim_type = 'role' and 'Administrator' = ANY (claim_values)").Select()
+	if err != nil {
+		return false, err
+	}
+	for _, claim := range claims {
+		user := models.User{UserID: claim.UserID}
+		err = db.Model(&user).WherePK().Select()
+		if err != nil {
+			return false, err
+		}
+		if user.IsActive {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
+func (ur *UserRepository) CreateDefaultAdmin(hasher func(string) ([]byte, error)) error {
+	hashedPasswordBytes, err := hasher(os.Getenv("DEFAULT_ADMIN_PASSWORD"))
+	if err != nil {
+		return errors.New("Unable to hash default password for default admin user")
+	}
+	defaultUser := os.Getenv("DEFAULT_ADMIN_USER")
+	user := models.User{
+		UserID:         defaultUser,
+		HashedPassword: string(hashedPasswordBytes),
+		GivenNames:     []string{"Default", "Admin"},
+		FamilyNames:    []string{"User"},
+		IsActive:       true,
+		Claims: []models.UserClaim{
+			{
+				UserID:      defaultUser,
+				ClaimType:   "role",
+				ClaimValues: []string{"Administrator"},
+			},
+		},
+	}
+	db := pg.Connect(&pg.Options{
+		User:     os.Getenv("DATABASE_USER"),
+		Database: os.Getenv("DATABASE_NAME"),
+	})
+	defer db.Close()
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	r, err := tx.Model(&user).Insert()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	if r.RowsAffected() != 1 {
+		tx.Rollback()
+		return errors.New("Error inserting default admin user")
+	}
+	r, err = tx.Model(&user.Claims[0]).Insert()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	if r.RowsAffected() != 1 {
+		tx.Rollback()
+		return errors.New("Error inserting default admin user claim")
+	}
+	tx.Commit()
+	return nil
+}
