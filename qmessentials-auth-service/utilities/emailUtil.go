@@ -13,7 +13,7 @@ func (eu *EmailUtil) SendEmail(recipient string, subject string, body string) er
 	emailUser := os.Getenv("EMAIL_USER")
 	emailPassword := os.Getenv("EMAIL_PASSWORD")
 	emailHost := os.Getenv("EMAIL_HOST")
-	emailServer := os.Getenv("EMAIL_SERVER")
+	emailServer := os.Getenv("EMAIL_HOST")
 	if emailUser == "" || emailPassword == "" || emailHost == "" || emailServer == "" {
 		log.Warn().Msgf("Email settings not provided; email will not be sent. Body was %s", body)
 	}
