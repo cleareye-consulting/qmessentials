@@ -66,7 +66,6 @@ func main() {
 }
 
 func handleGetUser(w http.ResponseWriter, r *http.Request) {
-	//TODO: require a JWT with a Role claim of "Administrator" before proceeding
 	id := chi.URLParam(r, "id")
 	repo := repositories.UserRepository{}
 	user, err := repo.GetUserByID(id)
@@ -86,7 +85,6 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetUsers(w http.ResponseWriter, r *http.Request) {
-	//TODO: require a JWT with a Role claim of "Administrator" before proceeding
 	nameParam := r.URL.Query().Get("name")
 	emailParam := r.URL.Query().Get("email")
 	isActiveParam := r.URL.Query().Get("isActive")
@@ -117,7 +115,6 @@ func handleGetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlePostUser(w http.ResponseWriter, r *http.Request) {
-	//TODO: require a JWT with a Role claim of "Administrator" before proceeding
 	repo := repositories.UserRepository{}
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -161,7 +158,6 @@ func handlePostUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlePutUser(w http.ResponseWriter, r *http.Request) {
-	//TODO: require a JWT with a Role claim of "Administrator" before proceeding
 	id := chi.URLParam(r, "id")
 	repo := repositories.UserRepository{}
 	bodyBytes, err := ioutil.ReadAll(r.Body)
@@ -187,7 +183,6 @@ func handlePutUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleDeleteUser(w http.ResponseWriter, r *http.Request) {
-	//TODO: require a JWT with a Role claim of "Administrator" before proceeding
 	id := chi.URLParam(r, "id")
 	repo := repositories.UserRepository{}
 	user, err := repo.GetUserByID(id)
