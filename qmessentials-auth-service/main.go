@@ -122,9 +122,6 @@ func handlePostUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	for _, claim := range user.Claims {
-		claim.UserID = user.UserID
-	}
 	if user.HashedPassword != "" {
 		log.Warn().Msgf("POST received for userID %s with hashed password already set", user.UserID)
 		w.WriteHeader(http.StatusBadRequest)
