@@ -10,3 +10,5 @@
 *.user
 /qmessentials-services-dotnet/qmessentials-services-dotnet.tests/obj/Debug/net5.0
 /qmessentials-services-dotnet/qmessentials-services-dotnet.tests/obj/Release/net5.0
+
+.DS_Store
