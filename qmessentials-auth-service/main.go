@@ -220,8 +220,13 @@ func handlePostLogin(w http.ResponseWriter, r *http.Request) {
 	var bcryptUtil utilities.BcryptUtil
 	match, err := bcryptUtil.Compare(login.Password, user.HashedPassword)
 	if err != nil {
-		log.Error().Stack().Err(err).Msg("")
-		w.WriteHeader(http.StatusInternalServerError)
+		if err.Error() == "Invalid user ID or password" {
+			log.Warn().Msgf("Failed login for user %s", login.UserID)
+			w.WriteHeader(http.StatusUnauthorized)
+		} else {
+			log.Error().Stack().Err(err).Msg("")
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 	if !match {
@@ -281,22 +286,18 @@ func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	type passwordChangeRequest struct {
-		userID      string
-		oldPassword string
-		newPassword string
-	}
-	var request passwordChangeRequest
+	var request models.PasswordChange
 	err = json.Unmarshal(bodyBytes, &request)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	log.Debug().Str("oldPassword", request.OldPassword).Msg("")
 	repo := repositories.UserRepository{}
-	user, err := repo.GetUserByID(request.userID)
+	user, err := repo.GetUserByID(request.UserID)
 	var bcryptUtil utilities.BcryptUtil
-	match, err := bcryptUtil.Compare(request.oldPassword, user.HashedPassword)
+	match, err := bcryptUtil.Compare(request.OldPassword, user.HashedPassword)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -306,14 +307,14 @@ func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	hashedNewPassword, err := bcryptUtil.Encrypt(request.newPassword)
+	hashedNewPassword, err := bcryptUtil.Encrypt(request.NewPassword)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	user.HashedPassword = string(hashedNewPassword)
-	repo.UpdateUser(request.userID, user)
+	repo.UpdateUser(request.UserID, user)
 	var emailUtil utilities.EmailUtil
 	emailUtil.SendEmail(user.EmailAddress, "Password changed", "Your QMEssentials password has been changed. If you did not request this change, please contact your system administrator.")
 	w.WriteHeader(http.StatusOK)

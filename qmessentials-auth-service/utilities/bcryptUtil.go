@@ -1,6 +1,7 @@
 package utilities
 
 import (
+	"errors"
 	"math/rand"
 	"strings"
 	"time"
@@ -18,7 +19,7 @@ func (bu *BcryptUtil) Encrypt(password string) ([]byte, error) {
 func (bu *BcryptUtil) Compare(input string, stored string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(stored), []byte(input))
 	if err != nil {
-		return false, err
+		return false, errors.New("Invalid user ID or password")
 	}
 	return true, nil
 }

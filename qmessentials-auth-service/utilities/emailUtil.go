@@ -15,7 +15,7 @@ func (eu *EmailUtil) SendEmail(recipient string, subject string, body string) er
 	emailHost := os.Getenv("EMAIL_HOST")
 	emailServer := os.Getenv("EMAIL_SERVER")
 	if emailUser == "" || emailPassword == "" || emailHost == "" || emailServer == "" {
-		log.Warn().Msg("Email settings not provided; email will not be sent")
+		log.Warn().Msgf("Email settings not provided; email will not be sent. Body was %s", body)
 	}
 	auth := smtp.PlainAuth("", emailUser, emailPassword, emailHost)
 	to := []string{recipient}
