@@ -15,6 +15,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/pkgerrors"
 )
 
 func init() {
@@ -28,23 +29,29 @@ func main() {
 
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	log.Debug().Msg("Started")
 
 	r := chi.NewRouter()
 	r.Get("/users/{id}", handleGetUser)
-	r.Get("/users/", handleGetUsers)
-	r.Post("/users/", handlePostUser)
+	r.Get("/users", handleGetUsers)
+	r.Post("/users", handlePostUser)
 	r.Put("/users/{id}", handlePutUser)
 	r.Delete("/users/{id}", handleDeleteUser)
 
-	r.Post("/logins/", handlePostLogin)
+	r.Post("/logins", handlePostLogin)
 
 	r.Post("/tokens", handlePostToken)
 
-	r.Post("/password-changes/", handlePostPasswordChange)
+	r.Post("/password-changes", handlePostPasswordChange)
 
-	http.ListenAndServe(":5000", r)
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		port = "5000"
+	}
+
+	http.ListenAndServe(":"+port, r)
 
 }
 
@@ -54,13 +61,13 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 	repo := repositories.UserRepository{}
 	user, err := repo.GetUserByID(id)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	userJSON, err := json.Marshal(user)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -70,39 +77,28 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 
 func handleGetUsers(w http.ResponseWriter, r *http.Request) {
 	//TODO: require a JWT with a Role claim of "Administrator" before proceeding
-	nameParam := chi.URLParam(r, "name")
-	emailParam := chi.URLParam(r, "email")
-	isActiveParam := chi.URLParam(r, "isActive")
-	var name *string
-	var email *string
-	var isActive *bool
-	if nameParam != "" {
-		name = &nameParam
+	nameParam := r.URL.Query().Get("name")
+	emailParam := r.URL.Query().Get("email")
+	isActiveParam := r.URL.Query().Get("isActive")
+	var isActiveValue bool
+	isActivePointer := &isActiveValue
+	if strings.EqualFold("true", isActiveParam) {
+		isActiveValue = true
+	} else if strings.EqualFold("false", isActiveParam) {
+		isActiveValue = false
 	} else {
-		name = nil
-	}
-	if emailParam == "" {
-		email = &emailParam
-	} else {
-		email = nil
-	}
-	if strings.EqualFold(isActiveParam, "true") {
-		*isActive = true
-	} else if strings.EqualFold(isActiveParam, "false") {
-		*isActive = false
-	} else {
-		isActive = nil
+		isActivePointer = nil
 	}
 	repo := repositories.UserRepository{}
-	users, err := repo.GetUsersBySearch(name, email, isActive)
+	users, err := repo.GetUsersBySearch(&nameParam, &emailParam, isActivePointer)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	usersJSON, err := json.Marshal(users)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -115,14 +111,22 @@ func handlePostUser(w http.ResponseWriter, r *http.Request) {
 	repo := repositories.UserRepository{}
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	var user models.User
-	json.Unmarshal(bodyBytes, &user)
+	err = json.Unmarshal(bodyBytes, &user)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	for _, claim := range user.Claims {
+		claim.UserID = user.UserID
+	}
 	if user.HashedPassword != "" {
-		log.Warn().Msgf("POST received for userID %s with hashed password already set", user.ID)
+		log.Warn().Msgf("POST received for userID %s with hashed password already set", user.UserID)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -130,7 +134,7 @@ func handlePostUser(w http.ResponseWriter, r *http.Request) {
 	randomPassword := bcryptUtil.GenerateRandomPassword()
 	encryptedPassword, err := bcryptUtil.Encrypt(randomPassword)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -138,12 +142,12 @@ func handlePostUser(w http.ResponseWriter, r *http.Request) {
 	user.IsPasswordChangeRequired = true
 	id, err := repo.AddUser(&user)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	var emailUtil utilities.EmailUtil
-	welcomeMessage := fmt.Sprintf("Your QMEssentials account has been created. The user ID is %s. The initial password is %s. This password will need to be changed on the first login.", user.ID, randomPassword)
+	welcomeMessage := fmt.Sprintf("Your QMEssentials account has been created. The user ID is %s. The initial password is %s. This password will need to be changed on the first login.", user.UserID, randomPassword)
 	emailUtil.SendEmail(user.EmailAddress, "New QMEssentials Account Info", welcomeMessage)
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(id))
@@ -155,20 +159,20 @@ func handlePutUser(w http.ResponseWriter, r *http.Request) {
 	repo := repositories.UserRepository{}
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	var user models.User
 	json.Unmarshal(bodyBytes, &user)
-	if !strings.EqualFold(id, user.ID) {
+	if !strings.EqualFold(id, user.UserID) {
 		log.Error().Msg("IDs do not match")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	err = repo.UpdateUser(id, &user)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -181,14 +185,14 @@ func handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	repo := repositories.UserRepository{}
 	user, err := repo.GetUserByID(id)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	user.IsActive = false
 	err = repo.UpdateUser(id, user)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -199,27 +203,27 @@ func handlePostLogin(w http.ResponseWriter, r *http.Request) {
 	repo := repositories.UserRepository{}
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	var login models.Login
 	err = json.Unmarshal(bodyBytes, &login)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	user, err := repo.GetUserByID(login.UserID)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	var bcryptUtil utilities.BcryptUtil
 	match, err := bcryptUtil.Compare(login.Password, user.HashedPassword)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -228,9 +232,9 @@ func handlePostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var jwtUtil utilities.JWTUtil
-	token, err := jwtUtil.CreateToken(user.ID)
+	token, err := jwtUtil.CreateToken(user.UserID)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -241,14 +245,14 @@ func handlePostLogin(w http.ResponseWriter, r *http.Request) {
 func handlePostToken(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	var jwtUtil utilities.JWTUtil
 	userID, err := jwtUtil.VerifyToken(string(bodyBytes))
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -259,13 +263,13 @@ func handlePostToken(w http.ResponseWriter, r *http.Request) {
 	repo := repositories.UserRepository{}
 	user, err := repo.GetUserByID(userID)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	usersJSON, err := json.Marshal(user)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -276,7 +280,7 @@ func handlePostToken(w http.ResponseWriter, r *http.Request) {
 func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -288,7 +292,7 @@ func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 	var request passwordChangeRequest
 	err = json.Unmarshal(bodyBytes, &request)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -297,7 +301,7 @@ func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 	var bcryptUtil utilities.BcryptUtil
 	match, err := bcryptUtil.Compare(request.oldPassword, user.HashedPassword)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -307,7 +311,7 @@ func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 	}
 	hashedNewPassword, err := bcryptUtil.Encrypt(request.newPassword)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

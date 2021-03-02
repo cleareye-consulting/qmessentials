@@ -30,7 +30,7 @@ func (bu *BcryptUtil) GenerateRandomPassword() string {
 	lowercase := []rune("abcdefghijklmnopqrstuvwxyz")
 	uppercase := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	digits := []rune("0123456789")
-	var charSets [][]rune
+	var charSets [3][]rune
 	charSets[0] = lowercase
 	charSets[1] = uppercase
 	charSets[2] = digits
@@ -38,7 +38,7 @@ func (bu *BcryptUtil) GenerateRandomPassword() string {
 	for i := 0; i < 3; i++ {
 		var b strings.Builder
 		for j := 0; j < 6; j++ {
-			charSetIndex := rand.Intn(2)
+			charSetIndex := rand.Intn(3)
 			charSet := charSets[charSetIndex]
 			char := charSet[rand.Intn(len(charSet))]
 			b.WriteRune(char)
