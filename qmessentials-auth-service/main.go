@@ -40,17 +40,21 @@ func main() {
 	}
 
 	r := chi.NewRouter()
-	r.Get("/users/{id}", handleGetUser)
-	r.Get("/users", handleGetUsers)
-	r.Post("/users", handlePostUser)
-	r.Put("/users/{id}", handlePutUser)
-	r.Delete("/users/{id}", handleDeleteUser)
 
 	r.Post("/logins", handlePostLogin)
 
 	r.Post("/tokens", handlePostToken)
 
 	r.Post("/password-changes", handlePostPasswordChange)
+
+	r.Group(func(r chi.Router) {
+		r.Use(requireAdmin)
+		r.Get("/users/{id}", handleGetUser)
+		r.Get("/users", handleGetUsers)
+		r.Post("/users", handlePostUser)
+		r.Put("/users/{id}", handlePutUser)
+		r.Delete("/users/{id}", handleDeleteUser)
+	})
 
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
@@ -339,4 +343,52 @@ func bootstrapAdminUser() error {
 	bcrypt := utilities.BcryptUtil{}
 	err = repo.CreateDefaultAdmin(bcrypt.Encrypt)
 	return err
+}
+
+func requireAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		roles, err := getRoles(authHeader)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if roles == nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		for _, role := range *roles {
+			if role == "Administrator" {
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+}
+
+func getRoles(authHeader string) (*[]string, error) {
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		return nil, nil
+	}
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	jwtUtil := utilities.JWTUtil{}
+	userID, err := jwtUtil.VerifyToken(token)
+	if err != nil {
+		return nil, err
+	}
+	repo := repositories.UserRepository{}
+	user, err := repo.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	var roles []string
+	for _, claim := range user.Claims {
+		if claim.ClaimType == "role" {
+			for _, role := range claim.ClaimValues {
+				roles = append(roles, role)
+			}
+		}
+	}
+	return &roles, nil
 }
