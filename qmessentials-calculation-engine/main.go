@@ -27,7 +27,7 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	log.Debug().Msg("Started")
+	log.Info().Msg("Started")
 
 	r := chi.NewRouter()
 
@@ -80,13 +80,12 @@ func handlePostObservation(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	allObservations := append(previousObservations, incomingObservation)
-	allObservationsJSON, err := json.Marshal(allObservations)
+	err = saveAllObservationsToRedis(incomingObservation.LotID, &allObservations, redisClient)
 	if err != nil {
 		log.Error().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	redisClient.Set(incomingObservation.LotID, allObservationsJSON, 1*60*60*1000*1000*1000)
 	metricGroups := groupObservationsByMetric(&allObservations)
 	calculations := make(chan *models.MetricCalculations, len(*metricGroups))
 	var wg sync.WaitGroup
@@ -97,19 +96,13 @@ func handlePostObservation(w http.ResponseWriter, r *http.Request) {
 	wg.Wait()
 	close(calculations)
 	result := models.LotCalculations{
-		LotID: incomingObservation.LotID,
+		LotID:     incomingObservation.LotID,
+		ProductID: incomingObservation.ProductID,
 	}
 	for calculation := range calculations {
 		result.MetricCalculations = append(result.MetricCalculations, *calculation)
 	}
-	brokerURL := fmt.Sprintf("%s/calculations", os.Getenv("BROKER_ENDPOINT"))
-	calculationsJSON, err := json.Marshal(calculations)
-	if err != nil {
-		log.Error().Err(err).Msg("")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	_, err = http.Post(brokerURL, "application/json", bytes.NewBuffer(calculationsJSON))
+	err = postResultsToBroker(&result)
 	if err != nil {
 		log.Error().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -166,6 +159,15 @@ func loadPreviousObservationsFromService(lotID string, previousObservations *[]m
 	return nil
 }
 
+func saveAllObservationsToRedis(lotID string, observations *[]models.Observation, redisClient *redis.Client) error {
+	observationsJSON, err := json.Marshal(observations)
+	if err != nil {
+		return err
+	}
+	redisClient.Set(lotID, observationsJSON, 1*60*60*1000*1000*1000)
+	return nil
+}
+
 func groupObservationsByMetric(observations *[]models.Observation) *map[string][]float64 {
 	groups := make(map[string][]float64)
 	for _, obs := range *observations {
@@ -213,6 +215,19 @@ func getCalculations(metricID string, values *[]float64, out chan<- *models.Metr
 	}
 	calculations.StandardDeviation = math.Sqrt(sumOfSquaredDeviations)
 	out <- &calculations
+}
+
+func postResultsToBroker(calculations *models.LotCalculations) error {
+	brokerURL := fmt.Sprintf("%s/calculations", os.Getenv("BROKER_ENDPOINT"))
+	calculationsJSON, err := json.Marshal(calculations)
+	if err != nil {
+		return err
+	}
+	_, err = http.Post(brokerURL, "application/json", bytes.NewBuffer(calculationsJSON))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //the incoming observation should have a sequence number n
