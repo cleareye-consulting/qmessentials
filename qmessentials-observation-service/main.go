@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -30,6 +31,7 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Post("/observations", handlePostObservation)
+	r.Post("/observation-groups", handlePostObservationGroup)
 	r.Get("/observations", handleGetObservations)
 
 	port, ok := os.LookupEnv("PORT")
@@ -62,7 +64,28 @@ func handlePostObservation(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
 
+func handlePostObservationGroup(w http.ResponseWriter, r *http.Request) {
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var observations []models.Observation
+	err = json.Unmarshal(bodyBytes, &observations)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = addObservationGroup(&observations)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 //observations GET by lot
@@ -71,7 +94,7 @@ func handleGetObservations(w http.ResponseWriter, r *http.Request) {
 }
 
 func addObservation(observation *models.Observation) error {
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGODB_CONNECTION_STRING")))
 	if err != nil {
 		return err
 	}
@@ -84,45 +107,156 @@ func addObservation(observation *models.Observation) error {
 	defer client.Disconnect(ctx)
 	database := client.Database("qmessentialsObservations")
 	collection := database.Collection("observations")
-	//The commented-out code is to run it in a transaction, but that requires a replica set
-	// session, err := client.StartSession()
-	// if err != nil {
-	// 	return err
-	// }
-	// defer session.EndSession(ctx)
+	if os.Getenv("MONGODB_HAS_REPLICA_SET") == "true" {
+		//Running in a transaction requires a replica set. If this is a relatively low-volume installation,
+		//a transaction shouldn't be necessary. But if multiple simulataneous requests are expected, you need
+		//the transaction to make sure the sequence numbers are correct.
+		session, err := client.StartSession()
+		if err != nil {
+			return err
+		}
+		defer session.EndSession(ctx)
 
-	// _, err = session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
-	// 	maxItemSequenceNumber, err := getMaxItemSequenceNumber(sessCtx, collection, observation.ItemID)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	maxLotSequenceNumber, err := getMaxLotSequenceNumber(sessCtx, collection, observation.LotID)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	observation.ItemSequenceNumber = *maxItemSequenceNumber + 1
-	// 	observation.LotSequenceNumber = *maxLotSequenceNumber + 1
-	// 	_, err = collection.InsertOne(sessCtx, &observation)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return nil, nil
-	// })
-	maxItemSequenceNumber, err := getMaxItemSequenceNumber(ctx, collection, observation.ItemID)
+		_, err = session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
+			maxItemSequenceNumber, err := getMaxItemSequenceNumber(sessCtx, collection, observation.ItemID)
+			if err != nil {
+				return nil, err
+			}
+			maxLotSequenceNumber, err := getMaxLotSequenceNumber(sessCtx, collection, observation.LotID)
+			if err != nil {
+				return nil, err
+			}
+			observation.ItemSequenceNumber = *maxItemSequenceNumber + 1
+			observation.LotSequenceNumber = *maxLotSequenceNumber + 1
+			_, err = collection.InsertOne(sessCtx, &observation)
+			if err != nil {
+				return nil, err
+			}
+			return nil, nil
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	} else {
+		maxItemSequenceNumber, err := getMaxItemSequenceNumber(ctx, collection, observation.ItemID)
+		if err != nil {
+			return err
+		}
+		observation.ItemSequenceNumber = *maxItemSequenceNumber + 1
+		maxLotSequenceNumber, err := getMaxLotSequenceNumber(ctx, collection, observation.LotID)
+		if err != nil {
+			return err
+		}
+		observation.LotSequenceNumber = *maxLotSequenceNumber + 1
+		_, err = collection.InsertOne(ctx, &observation)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+}
+
+func addObservationGroup(observations *[]models.Observation) error {
+	var itemID string
+	var lotID string
+	for i, observation := range *observations {
+		if i == 0 {
+			itemID = observation.ItemID
+			lotID = observation.LotID
+		} else {
+			if observation.ItemID != itemID || observation.LotID != lotID {
+				return errors.New("Observations in observation group must all be from the same item")
+			}
+		}
+	}
+	client, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGODB_CONNECTION_STRING")))
 	if err != nil {
 		return err
 	}
-	observation.ItemSequenceNumber = *maxItemSequenceNumber + 1
-	maxLotSequenceNumber, err := getMaxLotSequenceNumber(ctx, collection, observation.LotID)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel() //Not sure if this is right
+	err = client.Connect(ctx)
 	if err != nil {
 		return err
 	}
-	observation.LotSequenceNumber = *maxLotSequenceNumber + 1
-	_, err = collection.InsertOne(ctx, &observation)
-	if err != nil {
-		return err
+	defer client.Disconnect(ctx)
+	database := client.Database("qmessentialsObservations")
+	collection := database.Collection("observations")
+	var newItemSequenceNumber int
+	var newLotSequenceNumber int
+	//TODO: Refactor this to remove duplication
+	if os.Getenv("MONGODB_HAS_REPLICA_SET") == "true" {
+		//Running in a transaction requires a replica set. If this is a relatively low-volume installation,
+		//a transaction shouldn't be necessary. But if multiple simulataneous requests are expected, you need
+		//the transaction to make sure the sequence numbers are correct.
+		session, err := client.StartSession()
+		if err != nil {
+			return err
+		}
+		defer session.EndSession(ctx)
+
+		_, err = session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
+			maxItemSequenceNumber, err := getMaxItemSequenceNumber(sessCtx, collection, itemID)
+			if err != nil {
+				return nil, err
+			}
+			maxLotSequenceNumber, err := getMaxLotSequenceNumber(sessCtx, collection, lotID)
+			if err != nil {
+				return nil, err
+			}
+			newItemSequenceNumber = *maxItemSequenceNumber + 1
+			newLotSequenceNumber = *maxLotSequenceNumber + 1
+			for _, observation := range *observations {
+				observation.ItemSequenceNumber = newItemSequenceNumber
+				newItemSequenceNumber += 1
+				observation.LotSequenceNumber = newLotSequenceNumber
+				newLotSequenceNumber += 1
+			}
+			//Go doesn't automatically cast []T to []interface{}, you have to do it explicitly
+			recordsToInsert := make([]interface{}, len(*observations))
+			for i, observation := range *observations {
+				recordsToInsert[i] = observation
+			}
+			_, err = collection.InsertMany(sessCtx, recordsToInsert)
+			if err != nil {
+				return nil, err
+			}
+			return nil, nil
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	} else {
+		maxItemSequenceNumber, err := getMaxItemSequenceNumber(ctx, collection, itemID)
+		if err != nil {
+			return err
+		}
+		maxLotSequenceNumber, err := getMaxLotSequenceNumber(ctx, collection, lotID)
+		if err != nil {
+			return err
+		}
+		newItemSequenceNumber = *maxItemSequenceNumber + 1
+		newLotSequenceNumber = *maxLotSequenceNumber + 1
+		for _, observation := range *observations {
+			observation.ItemSequenceNumber = newItemSequenceNumber
+			newItemSequenceNumber += 1
+			observation.LotSequenceNumber = newLotSequenceNumber
+			newLotSequenceNumber += 1
+		}
+		recordsToInsert := make([]interface{}, len(*observations))
+		for i, observation := range *observations {
+			recordsToInsert[i] = observation
+		}
+		_, err = collection.InsertMany(ctx, recordsToInsert)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-	return nil
+
 }
 
 func getMaxItemSequenceNumber(ctx context.Context, collection *mongo.Collection, itemID string) (*int, error) {
