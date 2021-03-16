@@ -105,23 +105,45 @@ func handlePostObservationGroup(w http.ResponseWriter, r *http.Request) {
 
 //observations GET by lot
 func handleGetObservations(w http.ResponseWriter, r *http.Request) {
-	panic("Not implemented")
+	lotID := chi.URLParam(r, "lotID")
+	if lotID == "" {
+		log.Warn().Msg("GET observations received without lot ID")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ctx, client, _, collection, err := getMongoDB("observations")
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer client.Disconnect(ctx)
+	csr, err := collection.Find(ctx, bson.D{{Key: "lotId", Value: lotID}})
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var observations []models.Observation
+	csr.All(ctx, &observations)
+	observationsJSON, err := json.Marshal(observations)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(observationsJSON)
+	w.WriteHeader(http.StatusOK)
 }
 
+//doing this directly in main rather than split out a repository, etc., because this is a complex
+//database operation that need to happen all together and quickly, so no room for abstractions
 func addObservation(observation *models.Observation) error {
-	client, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGODB_CONNECTION_STRING")))
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel() //Not sure if this is right
-	err = client.Connect(ctx)
+	ctx, client, _, collection, err := getMongoDB("observations")
 	if err != nil {
 		return err
 	}
 	defer client.Disconnect(ctx)
-	database := client.Database("qmessentialsObservations")
-	collection := database.Collection("observations")
 	if os.Getenv("MONGODB_HAS_REPLICA_SET") == "true" {
 		//Running in a transaction requires a replica set. If this is a relatively low-volume installation,
 		//a transaction shouldn't be necessary. But if multiple simulataneous requests are expected, you need
@@ -171,6 +193,22 @@ func addObservation(observation *models.Observation) error {
 		return nil
 	}
 
+}
+
+func getMongoDB(collectionName string) (context.Context, *mongo.Client, *mongo.Database, *mongo.Collection, error) {
+	client, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGODB_CONNECTION_STRING")))
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel() //Not sure if this is right
+	err = client.Connect(ctx)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	database := client.Database(os.Getenv("MONGODB_DATABASE_NAME"))
+	collection := database.Collection(collectionName)
+	return ctx, client, database, collection, nil
 }
 
 func addObservationGroup(observations *[]models.Observation) error {
