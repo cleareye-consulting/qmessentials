@@ -131,7 +131,7 @@ func processObservations(observations *[]models.Observation, rawContent *[]byte)
 		return err
 	}
 	if lotByID != nil {
-		err = postToEngine(lotByID.EngineID, rawContent)
+		err = postToEngine(lotByID.EngineID, rawContent) //posting to engine based on existing lot assignment, no need to add a lot
 		if err != nil {
 			return err
 		}
@@ -157,6 +157,15 @@ func processObservations(observations *[]models.Observation, rawContent *[]byte)
 			engineIDToAssign = engineID //will pick the lowest engine number for the min count, but that's OK
 			break
 		}
+	}
+	lotToAdd := models.Lot{
+		LotID:       lotID,
+		EngineID:    engineIDToAssign,
+		CreatedDate: time.Now(),
+	}
+	_, err = lotsRepo.AddLot(&lotToAdd)
+	if err != nil {
+		return err
 	}
 	err = postToEngine(engineIDToAssign, rawContent)
 	if err != nil {
@@ -225,10 +234,17 @@ func handlePostCalculation(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	allCalculationsForLot, err := lmcRepo.ListLotMetricCalculationsByLotID(lotCalculations.LotID)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	allCalculationsJSON, err := json.Marshal(allCalculationsForLot)
 	errorChan := make(chan error, len(*subscriptionsForLot))
 	wg := sync.WaitGroup{}
 	for _, subscription := range *subscriptionsForLot {
-		go postObservationToSubscriptionCallbackURL(subscription.CallbackURL, &bodyBytes, errorChan)
+		go postCalculationsToSubscriptionCallbackURL(subscription.CallbackURL, &allCalculationsJSON, errorChan)
 		wg.Add(1)
 	}
 	wg.Wait()
@@ -241,7 +257,7 @@ func handlePostCalculation(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func postObservationToSubscriptionCallbackURL(url string, data *[]byte, errorChan chan<- error) {
+func postCalculationsToSubscriptionCallbackURL(url string, data *[]byte, errorChan chan<- error) {
 	_, err := http.Post(url, "application/json", bytes.NewBuffer(*data))
 	errorChan <- err
 }
