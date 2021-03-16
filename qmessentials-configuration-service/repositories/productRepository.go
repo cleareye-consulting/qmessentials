@@ -1,12 +1,12 @@
 package repositories
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/cleareyeconsulting/qmessentials/configuration/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 //ProductRepository represents the persistence layer for products
@@ -39,8 +39,8 @@ func (pr *ProductRepository) Select(productID string) (*models.Product, error) {
 	}
 	defer client.Disconnect(ctx)
 	fr := collection.FindOne(ctx, bson.D{{Key: "productId", Value: productID}})
-	if fr == nil {
-		return nil, errors.New("invalid product ID")
+	if fr.Err() == mongo.ErrNoDocuments {
+		return nil, nil
 	}
 	var product models.Product
 	err = fr.Decode(&product)

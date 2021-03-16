@@ -1,6 +1,6 @@
-
 import { BrowserRouter, Route } from 'react-router-dom'
 import './App.scss'
+import EditProduct from './components/configuration/product/EditProduct'
 import NewProduct from './components/configuration/product/NewProduct'
 import Products from './components/configuration/product/Products'
 import Home from './components/Home'
@@ -8,23 +8,23 @@ import Layout from './components/layout/Layout'
 
 function App() {
   return (
-    <BrowserRouter>       
+    <BrowserRouter>
       <Layout>
-         
-       
-          <Route exact path="/">
-            <Home/>
-          </Route>
-          <Route exact path="/configuration/products">
-            <Products/>             
-          </Route>
-          <Route exact path="/configuration/products/new">
-            <NewProduct/>
-          </Route>       
+        <Route exact path="/">
+          <Home />
+        </Route>
+        <Route exact path="/configuration/products">
+          <Products />
+        </Route>
+        <Route exact path="/configuration/products/new">
+          <NewProduct />
+        </Route>
+        <Route exacct path="/configuration/products/:productId/edit">
+          <EditProduct />
+        </Route>
       </Layout>
-      </BrowserRouter>
-    
-  );
+    </BrowserRouter>
+  )
 }
 
-export default App;
+export default App

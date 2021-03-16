@@ -6,10 +6,8 @@ import StandardInput from '../../StandardInput'
 export default function NewProduct() {
   const history = useHistory()
 
-  const [formState, setFormState] = useState({
-    productId: '',
-    productName: '',
-  })
+  const [productId, setProductId] = useState('')
+  const [productName, setProductName] = useState('')
 
   const [validationResults, setValidationResults] = useState({
     productId: null,
@@ -29,18 +27,36 @@ export default function NewProduct() {
   }, [validationResults])
 
   const canSubmit = useMemo(
-    () => formState.productId && formState.productName && invalidCount === 0,
-    [formState, invalidCount]
+    () => productId && productName && invalidCount === 0,
+    [productId, productName, invalidCount]
   )
 
-  const handleSubmit = () => {
-    console.log(process.env.REACT_APP_CONFIGURATION_SERVICE)
+  const handleSubmit = async () => {
     try {
-      axios.post(`${process.env.REACT_APP_CONFIGURATION_SERVICE}/products`, {
-        productId: formState.productId,
-        productName: formState.productName,
-      })
-      history.push("/configuration/products")
+      const existingRecord = (
+        await axios.get(
+          `${process.env.REACT_APP_CONFIGURATION_SERVICE}/products/${productId}`
+        )
+      ).data
+      if (existingRecord) {
+        setSaveError(
+          `Product ID ${productId} already exists! Please choose another ID.`
+        )
+        return
+      }
+      const response = await axios.post(
+        `${process.env.REACT_APP_CONFIGURATION_SERVICE}/products`,
+        {
+          productId: productId,
+          productName: productName,
+          isActive: true,
+        }
+      )
+      if (response.status !== 201) {
+        console.log(response)
+        throw new Error('Invalid response received from configuration service')
+      }
+      history.push('/configuration/products')
     } catch (error) {
       console.error(error)
       setSaveError(
@@ -57,8 +73,8 @@ export default function NewProduct() {
           <StandardInput
             label="Product ID"
             name="productId"
-            state={formState}
-            setState={setFormState}
+            value={productId}
+            setValue={setProductId}
             validationTest={(value) => /^[A-Z0-9_-]+$/.test(value)}
             validationMessage="Please use only uppercase letters, numbers, hyphens, and underscores"
             onValidationChange={(name, isValid) =>
@@ -70,8 +86,8 @@ export default function NewProduct() {
           <StandardInput
             label="Product Name"
             name="productName"
-            state={formState}
-            setState={setFormState}
+            value={productName}
+            setValue={setProductName}
             validationTest={(value) => /^[A-Za-z0-9_ '-]+$/.test(value)}
             validationMessage="Please use only letters, numbers, hyphens, underscores, apostrophes, and spaces"
             onValidationChange={(name, isValid) =>
@@ -79,7 +95,6 @@ export default function NewProduct() {
             }
             isRequired={true}
           />
-
           <hr />
           <div>
             <button
@@ -98,7 +113,11 @@ export default function NewProduct() {
               Cancel
             </button>
           </div>
-          {saveError !== null ? <div className="alert alert-danger">{saveError}</div> : <></>}
+          {saveError !== null ? (
+            <div className="alert alert-danger my-3">{saveError}</div>
+          ) : (
+            <></>
+          )}
         </form>
       </div>
     </>

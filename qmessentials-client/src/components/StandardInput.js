@@ -3,8 +3,8 @@ import { useState } from 'react'
 export default function StandardInput({
   label,
   name,
-  state,
-  setState,
+  value,
+  setValue,
   isRequired,
   validationTest,
   validationMessage,
@@ -18,19 +18,20 @@ export default function StandardInput({
       : !isRequired
     onValidationChange(name, isValidLocal)
     setIsValid(isValidLocal)
-    setState({ ...state, [name]: event.target.value })
+    setValue(event.target.value)
   }
 
   return (
     <div className="mb-3">
       <label className="control-label" htmlFor={name}>
-        {label}{isRequired ? "*" : ""}
+        {label}
+        {isRequired ? '*' : ''}
       </label>
       <input
         type="text"
         name={name}
         className={`form-control${!isValid ? ' is-invalid' : ''}`}
-        value={state[name]}
+        value={value}
         onChange={handleInputChange}
       />
       <div className="invalid-feedback">{validationMessage}</div>
