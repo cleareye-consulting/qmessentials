@@ -1,7 +1,10 @@
 package models
 
+import "time"
+
 //Product definition
 type Product struct {
-	ProductID   string `json:"productId" pg:",pk"`
-	ProductName string `json:"productName"`
+	ProductID   string    `json:"productId"`
+	ProductName string    `json:"productName"`
+	CreatedDate time.Time `json:"createdDate"`
 }

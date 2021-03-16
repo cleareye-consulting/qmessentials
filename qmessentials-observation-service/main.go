@@ -200,8 +200,7 @@ func getMongoDB(collectionName string) (context.Context, *mongo.Client, *mongo.D
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel() //Not sure if this is right
+	ctx := context.Background()
 	err = client.Connect(ctx)
 	if err != nil {
 		return nil, nil, nil, nil, err

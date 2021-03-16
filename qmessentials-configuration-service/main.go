@@ -11,6 +11,7 @@ import (
 	"github.com/cleareyeconsulting/qmessentials/configuration/models"
 	"github.com/cleareyeconsulting/qmessentials/configuration/routers"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -27,6 +28,15 @@ func main() {
 	log.Info().Msg("Started")
 
 	r := chi.NewRouter()
+	
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Test"))
 	})
@@ -38,12 +48,12 @@ func main() {
 		productsRouter := routers.ProductsRouter{}
 		r.Get("/{id}", productsRouter.HandleGetById)
 		r.Get("/", productsRouter.HandleGet)
-		r.Group(func(r chi.Router) {
-			r.Use(requireAnalystRole)
+		//r.Group(func(r chi.Router) {
+			//r.Use(requireAnalystRole)
 			r.Post("/", productsRouter.HandlePost)
 			r.Put("/{id}", productsRouter.HandlePut)
 			r.Delete("/{id}", productsRouter.HandleDelete)
-		})
+		//})
 	})
 
 	port, ok := os.LookupEnv("PORT")

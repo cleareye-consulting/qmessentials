@@ -16,7 +16,6 @@ export default function Layout({children}) {
             </nav>            
         </header>
         <main><div className="container-fluid">{children}</div></main>
-        <footer><hr /><div className="container-fluid">&copy; 2021 ClearEye Consulting, LLC</div></footer>
         </>
     )
 }

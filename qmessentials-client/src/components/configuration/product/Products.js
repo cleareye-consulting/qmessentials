@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Axios from 'axios'
+import { Link } from 'react-router-dom';
 
 export default function Products() {
 
@@ -8,7 +9,7 @@ export default function Products() {
     useEffect(() => {
         let cancel = false;
         (async () => {
-            const productsFromAPI = (await Axios.get('/configuration/products')).data
+            const productsFromAPI = (await Axios.get(`${process.env.REACT_APP_CONFIGURATION_SERVICE}/products`)).data
             if (!cancel) {
                 setProducts(productsFromAPI)
             }
@@ -19,7 +20,7 @@ export default function Products() {
     return (
         <>
         <h2>Products</h2>
-        <table>
+        <table className="table">
             <thead>
                 <tr>
                     <th>Product ID</th>
@@ -33,6 +34,7 @@ export default function Products() {
                 </tr>)}
             </tbody>
         </table>
+        <Link to="/configuration/products/new">Add a Product</Link>
         </>
     )
 }
