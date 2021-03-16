@@ -3,12 +3,14 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"sync"
 
 	"github.com/cleareyeconsulting/qmessentials/calculationengine/models"
@@ -32,6 +34,7 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Post("/observations", handlePostObservation)
+	r.Post("/observation-groups", handlePostObservationGroup)
 
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
@@ -58,33 +61,74 @@ func handlePostObservation(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-	var previousObservations []models.Observation
-	err = loadPreviousObservationsFromRedis(incomingObservation.LotID, &previousObservations, redisClient)
+	incomingAsArray := []models.Observation{incomingObservation}
+	err = addObservations(&incomingAsArray)
 	if err != nil {
 		log.Error().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if !areAllObservationsPresent(&incomingObservation, &previousObservations) {
-		log.Warn().Msgf("Unable to find previous observations for lot ID %s", incomingObservation.LotID)
-		err = loadPreviousObservationsFromService(incomingObservation.LotID, &previousObservations)
-		if err != nil {
-			log.Error().Err(err).Msg("")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+	w.WriteHeader(http.StatusOK)
+}
+
+func handlePostObservationGroup(w http.ResponseWriter, r *http.Request) {
+	incomingObservations := []models.Observation{}
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = json.Unmarshal(bodyBytes, &incomingObservations)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = addObservations(&incomingObservations)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func addObservations(incomingObservations *[]models.Observation) error {
+	var lotID string
+	var productID string
+	for i, obs := range *incomingObservations {
+		if i == 0 {
+			lotID = obs.LotID
+			productID = obs.ProductID
+		} else {
+			if obs.LotID != lotID {
+				return errors.New("observations must all be from the same lot")
+			}
+			if obs.ProductID != productID {
+				return errors.New("observations must all be for the same product")
+			}
 		}
 	}
-	allObservations := append(previousObservations, incomingObservation)
-	err = saveAllObservationsToRedis(incomingObservation.LotID, &allObservations, redisClient)
+	redisClient, err := getRedisClient()
 	if err != nil {
-		log.Error().Err(err).Msg("")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
+	}
+	previousObservations, err := getPreviousObservationsFromRedis(lotID, redisClient)
+	if err != nil {
+		return err
+	}
+	if !areAllObservationsPresent(incomingObservations, previousObservations) {
+		log.Warn().Msgf("Unable to find previous observations for lot ID %s", lotID)
+		err = loadPreviousObservationsFromService(lotID, previousObservations)
+		if err != nil {
+			return err
+		}
+	}
+	allObservations := append(*previousObservations, *incomingObservations...)
+	err = saveAllObservationsToRedis(lotID, &allObservations, redisClient)
+	if err != nil {
+		return err
 	}
 	metricGroups := groupObservationsByMetric(&allObservations)
 	calculations := make(chan *models.MetricCalculations, len(*metricGroups))
@@ -96,40 +140,59 @@ func handlePostObservation(w http.ResponseWriter, r *http.Request) {
 	wg.Wait()
 	close(calculations)
 	result := models.LotCalculations{
-		LotID:     incomingObservation.LotID,
-		ProductID: incomingObservation.ProductID,
+		LotID:     lotID,
+		ProductID: productID,
 	}
 	for calculation := range calculations {
 		result.MetricCalculations = append(result.MetricCalculations, *calculation)
 	}
 	err = postResultsToBroker(&result)
 	if err != nil {
-		log.Error().Err(err).Msg("")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
-
-func loadPreviousObservationsFromRedis(lotID string, previousObservations *[]models.Observation, redisClient *redis.Client) error {
-	previousObservationsAsString, err := redisClient.Get(lotID).Result()
-	if err == redis.Nil {
-		return nil //It's not there, just don't load anything into the results
-	}
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal([]byte(previousObservationsAsString), &previousObservations)
-	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func areAllObservationsPresent(inputObservation *models.Observation, previousObservations *[]models.Observation) bool {
-	for i := 1; i < inputObservation.LotSequenceNumber; i++ {
+func getRedisClient() (*redis.Client, error) {
+	redisDb, err := strconv.Atoi(os.Getenv("REDIS_DB"))
+	if err != nil {
+		return nil, err
+	}
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     os.Getenv("REDIS_ADDRESS"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       redisDb,
+	})
+	return redisClient, nil
+}
+
+func getPreviousObservationsFromRedis(lotID string, redisClient *redis.Client) (*[]models.Observation, error) {
+	previousObservationsAsString, err := redisClient.Get(lotID).Result()
+	if err == redis.Nil {
+		return nil, nil //It's not there, just don't load anything into the results
+	}
+	if err != nil {
+		return nil, err
+	}
+	previousObservations := []models.Observation{}
+	err = json.Unmarshal([]byte(previousObservationsAsString), &previousObservations)
+	if err != nil {
+		return nil, err
+	}
+	return &previousObservations, nil
+}
+
+func areAllObservationsPresent(inputObservations *[]models.Observation, previousObservations *[]models.Observation) bool {
+	maxIncomingLotSequenceNumber := 0
+	for _, obs := range *inputObservations {
+		if obs.LotSequenceNumber > maxIncomingLotSequenceNumber {
+			maxIncomingLotSequenceNumber = obs.LotSequenceNumber
+		}
+	}
+	allObservations := append(*inputObservations, *previousObservations...)
+	for i := 1; i < maxIncomingLotSequenceNumber; i++ {
 		found := false
-		for _, obs := range *previousObservations {
+		for _, obs := range allObservations {
 			if obs.LotSequenceNumber == i {
 				found = true
 				break
