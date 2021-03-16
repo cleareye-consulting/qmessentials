@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -64,6 +65,13 @@ func handlePostObservation(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	err = postObservationToBroker(&observation)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func handlePostObservationGroup(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +94,13 @@ func handlePostObservationGroup(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	err = postObservationGroupToBroker(&observations)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 //observations GET by lot
@@ -305,4 +320,22 @@ func getMaxLotSequenceNumber(ctx context.Context, collection *mongo.Collection, 
 		return nil, err
 	}
 	return &obs.LotSequenceNumber, err
+}
+
+func postObservationToBroker(observation *models.Observation) error {
+	observationBytes, err := json.Marshal(observation)
+	if err != nil {
+		return err
+	}
+	_, err = http.Post(os.Getenv("CALCULATION_BROKER")+"/observations", "application/json", bytes.NewBuffer(observationBytes))
+	return err
+}
+
+func postObservationGroupToBroker(observations *[]models.Observation) error {
+	observationBytes, err := json.Marshal(observations)
+	if err != nil {
+		return err
+	}
+	_, err = http.Post(os.Getenv("CALCULATION_BROKER")+"/observation-groups", "application/json", bytes.NewBuffer(observationBytes))
+	return err
 }

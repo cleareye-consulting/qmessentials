@@ -8,7 +8,11 @@ func (sr *SubscriptionsRepo) SelectSubscriptionByID(id int) (*models.Subscriptio
 	panic("Not implemented")
 }
 
-func (sr *SubscriptionsRepo) ListSubscriptionsByLotID(lotID string) (*[]models.Subscription, error) {
+func (sr *SubscriptionsRepo) ListSubscriptionsForLotID(lotID string) (*[]models.Subscription, error) {
+	panic("Not implemented")
+}
+
+func (sr *SubscriptionsRepo) CountSubscriptionsForLotID(lotID string) (int, error) {
 	panic("Not implemented")
 }
 

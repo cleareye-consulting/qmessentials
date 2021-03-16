@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -32,6 +33,7 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Post("/observations", handlePostObservation)
+	r.Post("/observation-groups", handlePostObservationGroup)
 	r.Post("/calculations", handlePostCalculation)
 	r.Post("/subscriptions", handlePostSubscription)
 	r.Delete("/subscriptions/{id}", handleDeleteSubscription)
@@ -71,39 +73,73 @@ func handlePostObservation(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	subscriptionsRepo := repositories.SubscriptionsRepo{}
-	subscriptionsForLot, err := subscriptionsRepo.ListSubscriptionsByLotID(observation.LotID)
+	observationAsArray := []models.Observation{observation}
+	err = processObservations(&observationAsArray, &bodyBytes)
 	if err != nil {
 		log.Error().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if len(*subscriptionsForLot) == 0 {
-		w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
+}
+
+func handlePostObservationGroup(w http.ResponseWriter, r *http.Request) {
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+	var observations []models.Observation
+	err = json.Unmarshal(bodyBytes, &observations)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = processObservations(&observations, &bodyBytes)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func processObservations(observations *[]models.Observation, rawContent *[]byte) error { //passing raw content as an optimization to avoid re-marshaling the object
+	var lotID string
+	for i, obs := range *observations {
+		if i == 0 {
+			lotID = obs.ItemID
+		} else {
+			if obs.LotID != lotID {
+				return errors.New("observations must all be from the same lot")
+			}
+		}
+	}
+	subscriptionsRepo := repositories.SubscriptionsRepo{}
+	subscriptionCount, err := subscriptionsRepo.CountSubscriptionsForLotID(lotID)
+	if err != nil {
+		return err
+	}
+	if subscriptionCount == 0 {
+		return nil
 	}
 	lotsRepo := repositories.LotsRepository{}
-	lotByID, err := lotsRepo.SelectLotByID(observation.LotID)
+	lotByID, err := lotsRepo.SelectLotByID(lotID)
 	if err != nil {
-		log.Error().Err(err).Msg("")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
 	if lotByID != nil {
-		err = postToEngine(lotByID.EngineID, &bodyBytes)
+		err = postToEngine(lotByID.EngineID, rawContent)
 		if err != nil {
-			log.Error().Err(err).Msg("")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return err
 		}
-		w.WriteHeader(http.StatusOK)
-		return
+		return nil
 	}
 	allLots, err := lotsRepo.ListAllLots()
 	if err != nil {
-		log.Error().Err(err).Msg("")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
 	lotsByEngine := make(map[int]int)
 	for _, lot := range *allLots {
@@ -122,13 +158,11 @@ func handlePostObservation(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	err = postToEngine(engineIDToAssign, &bodyBytes)
+	err = postToEngine(engineIDToAssign, rawContent)
 	if err != nil {
-		log.Error().Err(err).Msg("")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
-	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
 func postToEngine(engineID int, data *[]byte) error {
@@ -185,7 +219,7 @@ func handlePostCalculation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	subscriptionsRepo := repositories.SubscriptionsRepo{}
-	subscriptionsForLot, err := subscriptionsRepo.ListSubscriptionsByLotID(lotCalculations.LotID)
+	subscriptionsForLot, err := subscriptionsRepo.ListSubscriptionsForLotID(lotCalculations.LotID)
 	if err != nil {
 		log.Error().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
