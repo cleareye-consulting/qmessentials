@@ -1,5 +1,8 @@
 import { BrowserRouter, Route } from 'react-router-dom'
 import './App.scss'
+import EditUser from './components/auth/users/EditUser'
+import NewUser from './components/auth/users/NewUser'
+import Users from './components/auth/users/Users'
 import EditProduct from './components/configuration/product/EditProduct'
 import NewProduct from './components/configuration/product/NewProduct'
 import Products from './components/configuration/product/Products'
@@ -19,8 +22,17 @@ function App() {
         <Route exact path="/configuration/products/new">
           <NewProduct />
         </Route>
-        <Route exacct path="/configuration/products/:productId/edit">
+        <Route exact path="/configuration/products/:productId/edit">
           <EditProduct />
+        </Route>
+        <Route exact path="/auth/users">
+          <Users />
+        </Route>
+        <Route exact path="/auth/users/new">
+          <NewUser />
+        </Route>
+        <Route exact path="/auth/users/:userId/edit">
+          <EditUser />
         </Route>
       </Layout>
     </BrowserRouter>

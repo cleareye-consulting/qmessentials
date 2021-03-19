@@ -12,6 +12,7 @@ import (
 	"github.com/cleareyeconsulting/qmessentials/auth/repositories"
 	"github.com/cleareyeconsulting/qmessentials/auth/utilities"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -31,7 +32,7 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	log.Debug().Msg("Started")
+	log.Info().Msg("Started")
 
 	err := bootstrapAdminUser()
 	if err != nil {
@@ -41,6 +42,14 @@ func main() {
 
 	r := chi.NewRouter()
 
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
 	r.Post("/logins", handlePostLogin)
 
 	r.Post("/tokens", handlePostToken)
@@ -48,7 +57,7 @@ func main() {
 	r.Post("/password-changes", handlePostPasswordChange)
 
 	r.Group(func(r chi.Router) {
-		r.Use(requireAdmin)
+		//r.Use(requireAdmin)
 		r.Get("/users/{id}", handleGetUser)
 		r.Get("/users", handleGetUsers)
 		r.Post("/users", handlePostUser)
@@ -85,20 +94,8 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetUsers(w http.ResponseWriter, r *http.Request) {
-	nameParam := r.URL.Query().Get("name")
-	emailParam := r.URL.Query().Get("email")
-	isActiveParam := r.URL.Query().Get("isActive")
-	var isActiveValue bool
-	isActivePointer := &isActiveValue
-	if strings.EqualFold("true", isActiveParam) {
-		isActiveValue = true
-	} else if strings.EqualFold("false", isActiveParam) {
-		isActiveValue = false
-	} else {
-		isActivePointer = nil
-	}
 	repo := repositories.UserRepository{}
-	users, err := repo.GetUsersBySearch(&nameParam, &emailParam, isActivePointer)
+	users, err := repo.ListUsers()
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -144,17 +141,16 @@ func handlePostUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user.HashedPassword = string(encryptedPassword)
 	user.IsPasswordChangeRequired = true
-	id, err := repo.AddUser(&user)
+	err = repo.AddUser(&user)
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	var emailUtil utilities.EmailUtil
-	welcomeMessage := fmt.Sprintf("Your QMEssentials account has been created. The user ID is %s. The initial password is %s. This password will need to be changed on the first login.", user.UserID, randomPassword)
+	welcomeMessage := fmt.Sprintf("Your QMEssentials account has been created. The initial password is %s. This password will need to be changed on the first login.", randomPassword)
 	emailUtil.SendEmail(user.EmailAddress, "New QMEssentials Account Info", welcomeMessage)
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(id))
 }
 
 func handlePutUser(w http.ResponseWriter, r *http.Request) {
@@ -301,6 +297,11 @@ func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 	log.Debug().Str("oldPassword", request.OldPassword).Msg("")
 	repo := repositories.UserRepository{}
 	user, err := repo.GetUserByID(request.UserID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	var bcryptUtil utilities.BcryptUtil
 	match, err := bcryptUtil.Compare(request.OldPassword, user.HashedPassword)
 	if err != nil {
@@ -377,13 +378,5 @@ func getRoles(authHeader string) (*[]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var roles []string
-	for _, claim := range user.Claims {
-		if claim.ClaimType == "role" {
-			for _, role := range claim.ClaimValues {
-				roles = append(roles, role)
-			}
-		}
-	}
-	return &roles, nil
+	return &user.Roles, nil
 }

@@ -2,12 +2,12 @@ package models
 
 //User stores information about a user
 type User struct {
-	UserID                   string      `pg:", pk"`
-	GivenNames               []string    `pg:",array"`
-	FamilyNames              []string    `pg:",array"`
-	Claims                   []UserClaim `pg:"rel:has-many"`
-	EmailAddress             string
-	IsActive                 bool
-	IsPasswordChangeRequired bool
-	HashedPassword           string
+	UserID                   string   `bson:"userId" json:"userId"`
+	GivenNames               []string `bson:"givenNames" json:"givenNames"`
+	FamilyNames              []string `bson:"familyNames" json:"familyNames"`
+	Roles                    []string `bson:"roles" json:"roles"`
+	EmailAddress             string   `bson:"emailAddress" json:"emailAddress"`
+	IsActive                 bool     `bson:"isActive" json:"isActive"`
+	IsPasswordChangeRequired bool     `bson:"isPasswordChangeRequired" json:"isPasswordChangeRequired"`
+	HashedPassword           string   `bson:"hashedPassword" json:"-"`
 }

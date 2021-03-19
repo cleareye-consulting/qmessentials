@@ -6,211 +6,112 @@ import (
 	"os"
 
 	"github.com/cleareyeconsulting/qmessentials/auth/models"
-	"github.com/go-pg/pg/v10"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserRepository struct{}
 
 func (ur *UserRepository) GetUserByID(id string) (*models.User, error) {
-	db := pg.Connect(&pg.Options{
-		User:     os.Getenv("DATABASE_USER"),
-		Database: os.Getenv("DATABASE_NAME"),
-	})
-	defer db.Close()
-	user := models.User{
-		UserID: id,
-	}
-	err := db.Model(&user).WherePK().Select()
+	ctx, client, _, collection, err := getMongoDB("users")
 	if err != nil {
 		return nil, err
 	}
-	err = db.Model(&user.Claims).Where("user_id = ?", id).Select()
+	defer client.Disconnect(ctx)
+	fr := collection.FindOne(ctx, bson.D{{Key: "userId", Value: id}})
+	if fr.Err() == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	var user models.User
+	err = fr.Decode(&user)
 	if err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func (ur *UserRepository) GetUsersBySearch(name *string, email *string, isActive *bool) (*[]models.User, error) {
-	db := pg.Connect(&pg.Options{
-		User:     os.Getenv("DATABASE_USER"),
-		Database: os.Getenv("DATABASE_NAME"),
-	})
-	defer db.Close()
-	var users []models.User
-	query := db.Model(&users)
-	if name != nil && *name != "" {
-		query = query.Where("? = ANY (family_names) or ? = ANY (given_names)", *name, *name)
-	}
-	if email != nil && *email != "" {
-		query = query.Where("email_address = ?", *email)
-	}
-	if isActive != nil {
-		query = query.Where("is_active = ?", *isActive)
-	}
-	err := query.Select()
+func (ur *UserRepository) ListUsers() (*[]models.User, error) {
+	ctx, client, _, collection, err := getMongoDB("users")
 	if err != nil {
 		return nil, err
 	}
-	for i := 0; i < len(users); i++ {
-		user := &users[i]
-		err = db.Model(&user.Claims).Where("user_id = ?", user.UserID).Select()
-		if err != nil {
-			return nil, err
-		}
+	defer client.Disconnect(ctx)
+	csr, err := collection.Find(ctx, bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	var users []models.User
+	err = csr.All(ctx, &users)
+	if err != nil {
+		return nil, err
 	}
 	return &users, nil
 }
 
-func (ur *UserRepository) AddUser(user *models.User) (string, error) {
-	db := pg.Connect(&pg.Options{
-		User:     os.Getenv("DATABASE_USER"),
-		Database: os.Getenv("DATABASE_NAME"),
-	})
-	defer db.Close()
-	for i := 0; i < len(user.Claims); i++ {
-		user.Claims[i].UserID = user.UserID
-	}
-	tx, err := db.Begin()
+func (ur *UserRepository) AddUser(user *models.User) error {
+	ctx, client, _, collection, err := getMongoDB("users")
 	if err != nil {
-		return "", err
+		return err
 	}
-	r, err := tx.Model(user).Insert()
-	if err != nil {
-		tx.Rollback()
-		return "", err
-	}
-	if r.RowsAffected() != 1 {
-		tx.Rollback()
-		return "", fmt.Errorf("Insert operation affected %v rows, expected 1", r.RowsAffected())
-	}
-	r, err = tx.Model(&user.Claims).Insert()
-	if err != nil {
-		tx.Rollback()
-		return "", err
-	}
-	if r.RowsAffected() != len(user.Claims) {
-		tx.Rollback()
-		return "", fmt.Errorf("Insert operation affected %v rows, expected %v", r.RowsAffected(), len(user.Claims))
-	}
-	tx.Commit()
-	return user.UserID, nil
+	defer client.Disconnect(ctx)
+	_, err = collection.InsertOne(ctx, user)
+	return err
 }
 
 func (ur *UserRepository) UpdateUser(id string, user *models.User) error {
-	db := pg.Connect(&pg.Options{
-		User:     os.Getenv("DATABASE_USER"),
-		Database: os.Getenv("DATABASE_NAME"),
-	})
-	defer db.Close()
+	ctx, client, _, collection, err := getMongoDB("users")
+	if err != nil {
+		return err
+	}
+	defer client.Disconnect(ctx)
 	if id != user.UserID {
-		return errors.New("User ID on model doesn't match ID parameter")
+		return errors.New("user ID on model doesn't match ID parameter")
 	}
-	tx, err := db.Begin()
+	res, err := collection.ReplaceOne(ctx, bson.D{{Key: "userId", Value: id}}, user)
 	if err != nil {
 		return err
 	}
-	r, err := tx.Model(user).WherePK().Update()
-	if err != nil {
-		tx.Rollback()
-		return err
+	if res.ModifiedCount != 1 {
+		return fmt.Errorf("expected to update 1 row, updated %v", res.ModifiedCount)
 	}
-	if r.RowsAffected() != 1 {
-		tx.Rollback()
-		return fmt.Errorf("Update operation affected %v rows, expected 1", r.RowsAffected())
-	}
-	r, err = tx.Model(&user.Claims).Where("user_id = ?", id).Delete()
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	for i := 0; i < len(user.Claims); i++ {
-		user.Claims[i].UserID = user.UserID
-	}
-	r, err = tx.Model(&user.Claims).Insert()
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	if r.RowsAffected() != len(user.Claims) {
-		tx.Rollback()
-		return fmt.Errorf("Insert operation affected %v rows, expected %v", r.RowsAffected(), len(user.Claims))
-	}
-	tx.Commit()
 	return nil
 }
 
 func (ur *UserRepository) IsDefaultAdminNeeded() (bool, error) {
-	db := pg.Connect(&pg.Options{
-		User:     os.Getenv("DATABASE_USER"),
-		Database: os.Getenv("DATABASE_NAME"),
-	})
-	defer db.Close()
-	var claims []models.UserClaim
-	err := db.Model(&claims).Where("claim_type = 'role' and 'Administrator' = ANY (claim_values)").Select()
+	ctx, client, _, collection, err := getMongoDB("users")
 	if err != nil {
 		return false, err
 	}
-	for _, claim := range claims {
-		user := models.User{UserID: claim.UserID}
-		err = db.Model(&user).WherePK().Select()
-		if err != nil {
-			return false, err
-		}
-		if user.IsActive {
-			return false, nil
-		}
+	defer client.Disconnect(ctx)
+	count, err := collection.CountDocuments(ctx, bson.D{{
+		Key: "roles", Value: bson.A{"Administrator"}},
+		{Key: "isActive", Value: true}})
+	if err != nil {
+		return false, err
 	}
-	return true, nil
+	return count == 0, nil
 }
 
 func (ur *UserRepository) CreateDefaultAdmin(hasher func(string) ([]byte, error)) error {
 	hashedPasswordBytes, err := hasher(os.Getenv("DEFAULT_ADMIN_PASSWORD"))
 	if err != nil {
-		return errors.New("Unable to hash default password for default admin user")
+		return errors.New("unable to hash default password for default admin user")
 	}
 	defaultUser := os.Getenv("DEFAULT_ADMIN_USER")
 	user := models.User{
-		UserID:         defaultUser,
-		HashedPassword: string(hashedPasswordBytes),
-		GivenNames:     []string{"Default", "Admin"},
-		FamilyNames:    []string{"User"},
-		IsActive:       true,
-		Claims: []models.UserClaim{
-			{
-				UserID:      defaultUser,
-				ClaimType:   "role",
-				ClaimValues: []string{"Administrator"},
-			},
-		},
+		UserID:                   defaultUser,
+		HashedPassword:           string(hashedPasswordBytes),
+		GivenNames:               []string{"Default", "Admin"},
+		FamilyNames:              []string{"User"},
+		IsActive:                 true,
+		IsPasswordChangeRequired: false,
+		Roles:                    []string{"Administrator"},
 	}
-	db := pg.Connect(&pg.Options{
-		User:     os.Getenv("DATABASE_USER"),
-		Database: os.Getenv("DATABASE_NAME"),
-	})
-	defer db.Close()
-	tx, err := db.Begin()
+	ctx, client, _, collection, err := getMongoDB("users")
 	if err != nil {
 		return err
 	}
-	r, err := tx.Model(&user).Insert()
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	if r.RowsAffected() != 1 {
-		tx.Rollback()
-		return errors.New("Error inserting default admin user")
-	}
-	r, err = tx.Model(&user.Claims[0]).Insert()
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	if r.RowsAffected() != 1 {
-		tx.Rollback()
-		return errors.New("Error inserting default admin user claim")
-	}
-	tx.Commit()
-	return nil
+	defer client.Disconnect(ctx)
+	_, err = collection.InsertOne(ctx, &user)
+	return err
 }
