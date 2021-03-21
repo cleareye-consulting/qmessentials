@@ -1,5 +1,6 @@
 import { BrowserRouter, Route } from 'react-router-dom'
 import './App.scss'
+import { AuthProvider } from './components/auth/AuthContext'
 import EditUser from './components/auth/users/EditUser'
 import NewUser from './components/auth/users/NewUser'
 import Users from './components/auth/users/Users'
@@ -13,27 +14,29 @@ function App() {
   return (
     <BrowserRouter>
       <Layout>
-        <Route exact path="/">
-          <Home />
-        </Route>
-        <Route exact path="/configuration/products">
-          <Products />
-        </Route>
-        <Route exact path="/configuration/products/new">
-          <NewProduct />
-        </Route>
-        <Route exact path="/configuration/products/:productId/edit">
-          <EditProduct />
-        </Route>
-        <Route exact path="/auth/users">
-          <Users />
-        </Route>
-        <Route exact path="/auth/users/new">
-          <NewUser />
-        </Route>
-        <Route exact path="/auth/users/:userId/edit">
-          <EditUser />
-        </Route>
+        <AuthProvider>
+          <Route exact path="/">
+            <Home />
+          </Route>
+          <Route exact path="/configuration/products">
+            <Products />
+          </Route>
+          <Route exact path="/configuration/products/new">
+            <NewProduct />
+          </Route>
+          <Route exact path="/configuration/products/:productId/edit">
+            <EditProduct />
+          </Route>
+          <Route exact path="/auth/users">
+            <Users />
+          </Route>
+          <Route exact path="/auth/users/new">
+            <NewUser />
+          </Route>
+          <Route exact path="/auth/users/:userId/edit">
+            <EditUser />
+          </Route>
+        </AuthProvider>
       </Layout>
     </BrowserRouter>
   )
