@@ -63,6 +63,7 @@ func main() {
 		r.Post("/users", handlePostUser)
 		r.Put("/users/{id}", handlePutUser)
 		r.Delete("/users/{id}", handleDeleteUser)
+		r.Post("/password-resets", handlePasswordReset)
 	})
 
 	port, ok := os.LookupEnv("PORT")
@@ -328,6 +329,40 @@ func handlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 	repo.UpdateUser(request.UserID, user)
 	var emailUtil utilities.EmailUtil
 	emailUtil.SendEmail(user.EmailAddress, "Password changed", "Your QMEssentials password has been changed. If you did not request this change, please contact your system administrator.")
+	w.WriteHeader(http.StatusOK)
+}
+
+func handlePasswordReset(w http.ResponseWriter, r *http.Request) {
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	userID := string(bodyBytes)
+	repo := repositories.UserRepository{}
+	user, err := repo.GetUserByID(userID)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	bcryptUtil := utilities.BcryptUtil{}
+	newPassword := bcryptUtil.GenerateRandomPassword()
+	hashedNewPassword, err := bcryptUtil.Encrypt(newPassword)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	user.HashedPassword = string(hashedNewPassword)
+	user.IsPasswordChangeRequired = true
+	err = repo.UpdateUser(userID, user)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
