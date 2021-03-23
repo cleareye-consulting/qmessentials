@@ -1,4 +1,4 @@
-export default function StandardInput({ label, name, value }) {
+export default function DisabledInput({ label, name, value }) {
   return (
     <div className="mb-3">
       <label className="control-label" htmlFor={name}>

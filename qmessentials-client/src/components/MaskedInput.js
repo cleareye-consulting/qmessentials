@@ -30,7 +30,7 @@ export default function StandardInput({
         {isRequired ? '*' : ''}
       </label>
       <input
-        type="text"
+        type="password"
         name={name}
         className={`form-control${!isValid ? ' is-invalid' : ''}`}
         value={value}

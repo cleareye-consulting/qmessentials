@@ -57,7 +57,7 @@ func main() {
 	r.Post("/password-changes", handlePostPasswordChange)
 
 	r.Group(func(r chi.Router) {
-		//r.Use(requireAdmin)
+		r.Use(requireAdmin)
 		r.Get("/users/{id}", handleGetUser)
 		r.Get("/users", handleGetUsers)
 		r.Post("/users", handlePostUser)
@@ -218,7 +218,12 @@ func handlePostLogin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	var bcryptUtil utilities.BcryptUtil
+	if user == nil {
+		log.Warn().Msgf("Login attempt for invalid user ID %s", login.UserID)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	bcryptUtil := utilities.BcryptUtil{}
 	match, err := bcryptUtil.Compare(login.Password, user.HashedPassword)
 	if err != nil {
 		if err.Error() == "Invalid user ID or password" {
