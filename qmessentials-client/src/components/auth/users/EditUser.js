@@ -158,7 +158,8 @@ export default function EditUser() {
             <input
               className="form-check-input"
               type="checkbox"
-              checked={isActive}
+              checked={isActive || false}
+              disabled={isActive === null}
               onChange={(event) => setIsActive(event.target.checked)}
               name="isActive"
               id="isActive"

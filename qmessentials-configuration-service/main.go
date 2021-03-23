@@ -28,7 +28,7 @@ func main() {
 	log.Info().Msg("Started")
 
 	r := chi.NewRouter()
-	
+
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -48,12 +48,12 @@ func main() {
 		productsRouter := routers.ProductsRouter{}
 		r.Get("/{id}", productsRouter.HandleGetById)
 		r.Get("/", productsRouter.HandleGet)
-		//r.Group(func(r chi.Router) {
-			//r.Use(requireAnalystRole)
+		r.Group(func(r chi.Router) {
+			r.Use(requireAnalystRole)
 			r.Post("/", productsRouter.HandlePost)
 			r.Put("/{id}", productsRouter.HandlePut)
 			r.Delete("/{id}", productsRouter.HandleDelete)
-		//})
+		})
 	})
 
 	port, ok := os.LookupEnv("PORT")
@@ -77,7 +77,7 @@ func requireAnalystRole(next http.Handler) http.Handler {
 			return
 		}
 		for _, role := range *roles {
-			if role == "Administrator" {
+			if role == "Analyst" {
 				next.ServeHTTP(w, r)
 				return
 			}
