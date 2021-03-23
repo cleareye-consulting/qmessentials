@@ -1,6 +1,7 @@
-import { BrowserRouter, Route } from 'react-router-dom'
+import { BrowserRouter, Route, Switch } from 'react-router-dom'
 import './App.scss'
-import { AuthProvider } from './components/auth/AuthContext'
+import { AuthProvider } from './components/auth/AuthProvider'
+import { PermissionsProvider } from './components/auth/PermissionsProvider'
 import EditUser from './components/auth/users/EditUser'
 import NewUser from './components/auth/users/NewUser'
 import Users from './components/auth/users/Users'
@@ -15,27 +16,17 @@ function App() {
     <BrowserRouter>
       <Layout>
         <AuthProvider>
-          <Route exact path="/">
-            <Home />
-          </Route>
-          <Route exact path="/configuration/products">
-            <Products />
-          </Route>
-          <Route exact path="/configuration/products/new">
-            <NewProduct />
-          </Route>
-          <Route exact path="/configuration/products/:productId/edit">
-            <EditProduct />
-          </Route>
-          <Route exact path="/auth/users">
-            <Users />
-          </Route>
-          <Route exact path="/auth/users/new">
-            <NewUser />
-          </Route>
-          <Route exact path="/auth/users/:userId/edit">
-            <EditUser />
-          </Route>
+          <PermissionsProvider>
+            <Switch>
+              <Route path="/configuration/products" component={Products} />
+              <Route path="/configuration/products/new" component={NewProduct} />
+              <Route path="/configuration/products/:productId/edit" component={EditProduct} />
+              <Route path="/auth/users" component={Users} />
+              <Route path="/auth/users/new" component={NewUser} />
+              <Route path="/auth/users/:userId/edit" component={EditUser} />
+              <Route path="/" component={Home} />
+            </Switch>
+          </PermissionsProvider>
         </AuthProvider>
       </Layout>
     </BrowserRouter>

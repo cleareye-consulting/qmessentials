@@ -1,11 +1,5 @@
 import axios from 'axios'
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import Login from './Login'
 
 const AuthState = {
@@ -42,10 +36,7 @@ function AuthProvider(props) {
         axios.defaults.headers.common['Authorization'] = null
         setAuthState(AuthState.CheckingToken)
         try {
-          const tokenPostResponse = await axios.post(
-            `${process.env.REACT_APP_AUTH_SERVICE}/tokens`,
-            storedToken
-          )
+          const tokenPostResponse = await axios.post(`${process.env.REACT_APP_AUTH_SERVICE}/tokens`, storedToken)
           if (tokenPostResponse.status !== 200) {
             localStorage.removeItem('authToken')
             setUserInfo(defaultUserInfo)
@@ -54,9 +45,7 @@ function AuthProvider(props) {
           }
           const userInfoFromApi = tokenPostResponse.data
           setUserInfo(userInfoFromApi)
-          axios.defaults.headers.common[
-            'Authorization'
-          ] = `Bearer ${storedToken}`
+          axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
           setAuthState(AuthState.UserInfoRetrieved)
         } catch (error) {
           console.error(error)
@@ -69,13 +58,10 @@ function AuthProvider(props) {
   const logIn = async (userId, password) => {
     setAuthState(AuthState.LoggingIn)
     try {
-      const loginResponse = await axios.post(
-        `${process.env.REACT_APP_AUTH_SERVICE}/logins`,
-        {
-          userId,
-          password,
-        }
-      )
+      const loginResponse = await axios.post(`${process.env.REACT_APP_AUTH_SERVICE}/logins`, {
+        userId,
+        password,
+      })
       if (loginResponse.status !== 200) {
         localStorage.removeItem('authToken')
         setUserInfo(defaultUserInfo)
@@ -84,9 +70,7 @@ function AuthProvider(props) {
       const token = loginResponse.data
       localStorage.setItem('authToken', token)
       setAuthState(AuthState.RetrievingUserInfo)
-      const userInfoFromApi = (
-        await axios.post(`${process.env.REACT_APP_AUTH_SERVICE}/tokens`, token)
-      ).data
+      const userInfoFromApi = (await axios.post(`${process.env.REACT_APP_AUTH_SERVICE}/tokens`, token)).data
       setUserInfo(userInfoFromApi)
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       setAuthState(AuthState.UserInfoRetrieved)
