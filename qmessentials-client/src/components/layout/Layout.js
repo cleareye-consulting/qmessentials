@@ -1,6 +1,6 @@
 import React from 'react'
 import logo from '../../assets/images/qmessentials-logo.svg'
-import { useAuth } from '../auth/AuthProvider'
+import { AuthState, useAuth } from '../auth/AuthProvider'
 import NavBar from './NavBar'
 import NavBarBrand from './NavBarBrand'
 import NavBarMainMenu from './NavBarMainMenu'
@@ -9,7 +9,7 @@ import NavBarSubMenu from './NavBarSubMenu'
 import NavBarSubMenuItem from './NavBarSubMenuItem'
 
 export default function Layout({ children }) {
-  const { userInfo } = useAuth()
+  const { userInfo, authState } = useAuth()
 
   return (
     <>
@@ -21,13 +21,21 @@ export default function Layout({ children }) {
                 <NavBar>
                   <NavBarBrand logo={logo} text="QMEssentials" onClick={() => setExpandedItem('')} />
                   <NavBarMainMenu>
-                    <NavBarSubMenu text="Admin">
-                      <NavBarSubMenuItem to="/auth/users">Users</NavBarSubMenuItem>
-                    </NavBarSubMenu>
-                    <NavBarSubMenu text="Configuration">
-                      <NavBarSubMenuItem to="/configuration/products">Products</NavBarSubMenuItem>
-                    </NavBarSubMenu>
-                    <NavBarSubMenu text={userInfo.userId}></NavBarSubMenu>
+                    {authState === AuthState.UserInfoRetrieved ? (
+                      <>
+                        <NavBarSubMenu text="Admin">
+                          <NavBarSubMenuItem to="/auth/users">Users</NavBarSubMenuItem>
+                        </NavBarSubMenu>
+                        <NavBarSubMenu text="Configuration">
+                          <NavBarSubMenuItem to="/configuration/products">Products</NavBarSubMenuItem>
+                        </NavBarSubMenu>
+                        <NavBarSubMenu text={userInfo.userId}>
+                          <NavBarSubMenuItem to="/auth/logout">Log out</NavBarSubMenuItem>
+                        </NavBarSubMenu>
+                      </>
+                    ) : (
+                      <></>
+                    )}
                   </NavBarMainMenu>
                 </NavBar>
               </header>

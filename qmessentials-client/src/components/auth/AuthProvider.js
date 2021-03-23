@@ -1,6 +1,5 @@
 import axios from 'axios'
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import Login from './Login'
 
 const AuthState = {
   None: 0, //render log in
@@ -88,13 +87,9 @@ function AuthProvider(props) {
     setAuthState(AuthState.None)
   }
 
-  return (
-    <AuthContext.Provider value={{ authState, userInfo, logIn, logOut }}>
-      {authState === AuthState.UserInfoRetrieved ? props.children : <Login />}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={{ authState, userInfo, logIn, logOut }} {...props} />
 }
 
 const useAuth = () => useContext(AuthContext)
 
-export { AuthState, AuthProvider, useAuth }
+export { AuthState, AuthProvider, useAuth, AuthContext }

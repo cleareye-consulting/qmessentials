@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import StandardInput from '../StandardInput'
+import MaskedInput from '../MaskedInput'
 import DisabledInput from '../DisabledInput'
 import { useAuth, AuthState } from './AuthProvider'
 
@@ -25,11 +26,10 @@ export default function Login() {
             <DisabledInput label="User ID" name="userId" value={userId} />
           )}
           {canInput ? (
-            <StandardInput label="Password" name="password" value={password} setValue={setPassword} />
+            <MaskedInput label="Password" name="password" value={password} setValue={setPassword} />
           ) : (
             <DisabledInput label="Password" name="password" value="*****" />
           )}
-          <hr />
           <div>
             <button type="button" className="btn btn-primary" onClick={handleLoginButtonClick} disabled={!canInput || !userId || !password}>
               <>

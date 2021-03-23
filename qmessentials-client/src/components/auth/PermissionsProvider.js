@@ -25,6 +25,9 @@ const getSubjectForPath = (path) => {
   if (path === '/') {
     return 'General'
   }
+  if (path === '/auth/logout') {
+    return 'General'
+  }
   if (/^\/auth\/users(?:\/|$)/.test(path)) {
     return 'User'
   }
