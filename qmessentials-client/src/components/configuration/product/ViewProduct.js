@@ -1,0 +1,54 @@
+import axios from 'axios'
+import { useEffect, useMemo, useState } from 'react'
+import { useHistory, useParams } from 'react-router'
+import DisabledInput from '../../DisabledInput'
+import StandardInput from '../../StandardInput'
+
+export default function EditProduct() {
+  const history = useHistory()
+
+  const [productName, setProductName] = useState('')
+  const [isActive, setIsActive] = useState(null)
+
+  const { productId } = useParams()
+
+  useEffect(() => {
+    let cancel = false
+    ;(async () => {
+      try {
+        const product = (await axios.get(`${process.env.REACT_APP_CONFIGURATION_SERVICE}/products/${productId}`)).data
+        if (!cancel) {
+          setProductName(product.productName)
+          setIsActive(product.isActive)
+        }
+      } catch (error) {
+        console.error(error)
+        setErrorMessage('Unable to retrieve product from database. Please try again, or contact support.')
+      }
+    })()
+    return () => (cancel = true)
+  }, [productId])
+
+  const [errorMessage, setErrorMessage] = useState(null)
+
+  return (
+    <>
+      <h2>View Product {productId}</h2>
+      <dl>
+        <dt>Product ID</dt>
+        <dd>{productId}</dd>
+        <dt>Product Name</dt>
+        <dd>{productName}</dd>
+        <dt>Active</dt>
+        <dd>{isActive ? 'Yes' : 'No'}</dd>
+      </dl>
+      <hr />
+      <div>
+        <button type="button" className="btn btn-primary" onClick={() => history.goBack()}>
+          Go Back
+        </button>
+      </div>
+      {errorMessage !== null ? <div className="alert alert-danger my-3">{errorMessage}</div> : <></>}
+    </>
+  )
+}

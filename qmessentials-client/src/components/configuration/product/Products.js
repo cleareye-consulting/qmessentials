@@ -27,7 +27,7 @@ export default function Products() {
           <tr>
             <th>Product ID</th>
             <th>Product Name</th>
-            {permission === Permissions.ReadWrite ? <th>&nbsp;</th> : <></>}
+            <th>&nbsp;</th>
           </tr>
         </thead>
         <tbody>
@@ -38,18 +38,18 @@ export default function Products() {
                 {p.productName}
                 {!p.isActive ? ' (INACTIVE)' : ''}
               </td>
-              {permission === Permissions.ReadWrite ? (
-                <td>
+              <td>
+                {(permission & Permissions.Edit) === Permissions.Edit ? (
                   <Link to={`/configuration/products/${p.productId}/edit`}>edit</Link>
-                </td>
-              ) : (
-                <></>
-              )}
+                ) : (
+                  <Link to={`/configuration/products/${p.productId}/view`}>view</Link>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-      {permission === Permissions.ReadWrite ? <Link to="/configuration/products/new">Add a Product</Link> : <></>}
+      {(permission & Permissions.Add) === Permissions.Add ? <Link to="/configuration/products/new">Add a Product</Link> : <></>}
     </>
   )
 }

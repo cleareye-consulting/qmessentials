@@ -6,54 +6,33 @@ const PermissionsContext = createContext()
 
 const Permissions = {
   None: 0,
-  Read: 1,
-  Write: 2,
-  ReadWrite: 3,
+  View: 1,
+  Edit: 2,
+  Add: 4,
+  ViewAndEdit: 3,
+  ViewAndAdd: 5,
+  EditAndAdd: 6,
+  FullPermissions: 7,
 }
 
 const permissionRequirements = [
-  ['List Users', ['Administrator'], ['Administrator']],
-  ['Add User', ['Administrator'], ['Administrator']],
-  ['Edit User', ['Administrator'], ['Administrator']],
-  ['List Products', ['Administrator', 'Analyst'], ['Administrator', 'Analyst']],
-  ['Add Product', ['Administrator', 'Analyst'], ['Administrator', 'Analyst']],
-  ['Edit Product', ['Administrator', 'Analyst'], ['Administrator', 'Analyst']],
+  ['General', ['Administrator', 'Analyst', 'Tester'], [], []],
+  ['User', ['Administrator'], ['Administrator'], ['Administrator']],
+  ['Product', ['Administrator', 'Analyst', 'Tester'], ['Administrators', 'Analyst'], ['Administrator', 'Analyst']],
 ]
 
 const getSubjectForPath = (path) => {
   if (path === '/') {
-    return 'Home'
+    return 'General'
   }
-  const parts = path.split('/').slice(1) //to remove the first element, which will be the empty string preceding the opening slash
-  if (parts[0] === 'auth') {
-    if (parts[1] === 'users') {
-      if (parts.length === 2) {
-        return 'List Users'
-      }
-      if (parts.length === 3 && parts[2] === 'new') {
-        return 'Add User'
-      }
-      if (parts.length === 4 && parts[3] === 'edit') {
-        return 'Edit User'
-      }
-      return null
-    }
-    return null
+  if (/^\/auth\/users\//.test(path)) {
+    return 'User'
   }
-  if (parts[0] === 'configuration') {
-    if (parts[1] === 'products') {
-      if (parts.length === 2) {
-        return 'List Products'
-      }
-      if (parts.length === 3 && parts[2] === 'new') {
-        return 'Add Product'
-      }
-      if (parts.length === 4 && parts[3] === 'edit') {
-        return 'Edit Product'
-      }
-      return null
+  const configMatch = /^\/configuration(\/.*)/.exec(path)
+  if (configMatch) {
+    if (/^\/products(?:\/|$)/.test(configMatch[1])) {
+      return 'Product'
     }
-    return null
   }
   return null
 }
@@ -63,27 +42,30 @@ function PermissionsProvider({ children }) {
   const { pathname } = useLocation()
   const permissions = useMemo(() => {
     if (authState !== AuthState.UserInfoRetrieved) {
-      return { permission: Permissions.None, readRoles: [], writeRoles: [] }
+      return { permission: Permissions.None, listRoles: [], editRoles: [], addRoles: [] }
     }
     const subject = getSubjectForPath(pathname)
     const permissionsForSubject = permissionRequirements.find((r) => r[0] === subject)
     if (!permissionsForSubject) {
-      return { permission: Permissions.None, readRoles: [], writeRoles: [] }
+      return { permission: Permissions.None, listRoles: [], editRoles: [], addRoles: [] }
     }
-    const readRoles = permissionsForSubject[1]
-    const writeRoles = permissionsForSubject[2]
-    const canRead = readRoles.some((r) => userInfo.roles.includes(r))
-    const canWrite = writeRoles.some((r) => userInfo.roles.includes(r))
-    if (canRead) {
-      if (canWrite) {
-        return { permission: Permissions.ReadWrite, readRoles, writeRoles }
-      }
-      return { permission: Permissions.Read, readRoles, writeRoles }
+    const listRoles = permissionsForSubject[1]
+    const editRoles = permissionsForSubject[2]
+    const addRoles = permissionsForSubject[3]
+    const canList = listRoles.some((r) => userInfo.roles.includes(r))
+    const canEdit = editRoles.some((r) => userInfo.roles.includes(r))
+    const canAdd = addRoles.some((r) => userInfo.roles.includes(r))
+    let rv = Permissions.None
+    if (canList) {
+      rv |= Permissions.View
     }
-    if (canWrite) {
-      return { permission: Permissions.Write, readRoles, writeRoles }
+    if (canEdit) {
+      rv |= Permissions.Edit
     }
-    return { permission: Permissions.None, readRoles, writeRoles }
+    if (canAdd) {
+      rv |= Permissions.Add
+    }
+    return { permission: rv, listRoles, editRoles, addRoles }
   }, [authState, userInfo, pathname])
 
   return (
@@ -94,8 +76,8 @@ function PermissionsProvider({ children }) {
           <p>
             <strong>You do not have the required permissions to view this page.</strong>
           </p>
-          <p>Roles that can see this page: {permissions.readRoles.length > 0 ? permissions.readRoles.join(', ') : 'None'}</p>
-          <p>Roles that can modify this page: {permissions.writeRoles.length > 0 ? permissions.writeRoles.join(', ') : 'None'}</p>
+          <p>Roles that can see this page: {permissions.listRoles.length > 0 ? permissions.listRoles.join(', ') : 'None'}</p>
+          <p>Roles that can modify this page: {permissions.editRoles.length > 0 ? permissions.editRoles.join(', ') : 'None'}</p>
         </>
       ) : (
         children
