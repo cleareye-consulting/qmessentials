@@ -2,10 +2,10 @@ package models
 
 //User stores information about a user
 type User struct {
-	UserID                   string      `pg:", pk"`
-	GivenNames               []string    `pg:",array"`
-	FamilyNames              []string    `pg:",array"`
-	Claims                   []UserClaim `pg:"rel:has-many"`
+	UserID                   string
+	GivenNames               []string
+	FamilyNames              []string
+	Roles                    []string
 	EmailAddress             string
 	IsActive                 bool
 	IsPasswordChangeRequired bool

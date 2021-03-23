@@ -104,13 +104,5 @@ func getRoles(authHeader string) (*[]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var roles []string
-	for _, claim := range user.Claims {
-		if claim.ClaimType == "role" {
-			for _, role := range claim.ClaimValues {
-				roles = append(roles, role)
-			}
-		}
-	}
-	return &roles, nil
+	return &user.Roles, nil
 }
