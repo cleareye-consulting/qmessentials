@@ -8,6 +8,7 @@ require (
 	github.com/go-chi/cors v1.1.1 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/joho/godotenv v1.3.0
+	github.com/mailgun/mailgun-go v2.0.0+incompatible // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/rs/zerolog v1.20.0
 	github.com/sendgrid/rest v2.6.3+incompatible // indirect

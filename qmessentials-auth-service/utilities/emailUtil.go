@@ -5,6 +5,7 @@ import (
 	"net/smtp"
 	"os"
 
+	"github.com/mailgun/mailgun-go"
 	"github.com/rs/zerolog/log"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -18,6 +19,9 @@ func (eu *EmailUtil) SendEmail(recipient string, subject string, body string) er
 	}
 	if os.Getenv("SENDGRID_API_KEY") != "" {
 		return sendEmailWithSendGrid(recipient, subject, body)
+	}
+	if os.Getenv("MAILGUN_DOMAIN") != "" {
+		return sendEmailWithMailGun(recipient, subject, body)
 	}
 	return errors.New("unable to determine email method")
 }
@@ -43,5 +47,12 @@ func sendEmailWithSendGrid(recipient string, subject string, body string) error 
 	message := mail.NewSingleEmailPlainText(from, subject, to, body)
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	_, err := client.Send(message)
+	return err
+}
+
+func sendEmailWithMailGun(recipient string, subject string, body string) error {
+	mg := mailgun.NewMailgun(os.Getenv("MAILGUN_DOMAIN"), os.Getenv("MAILGUN_PRIVATE_KEY"))
+	message := mg.NewMessage(os.Getenv("MAILGUN_SENDER_EMAIL"), subject, body, recipient)
+	_, _, err := mg.Send(message)
 	return err
 }
