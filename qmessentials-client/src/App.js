@@ -15,8 +15,8 @@ import Layout from './components/layout/Layout'
 function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <AuthProvider>
+      <AuthProvider>
+        <Layout>
           <PermissionsProvider>
             <Switch>
               <Route path="/configuration/products/new" component={NewProduct} />
@@ -29,8 +29,8 @@ function App() {
               <Route path="/" component={Home} />
             </Switch>
           </PermissionsProvider>
-        </AuthProvider>
-      </Layout>
+        </Layout>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

@@ -18,14 +18,14 @@ const Permissions = {
 const permissionRequirements = [
   ['General', ['Administrator', 'Analyst', 'Tester'], [], []],
   ['User', ['Administrator'], ['Administrator'], ['Administrator']],
-  ['Product', ['Administrator', 'Analyst', 'Tester'], ['Administrators', 'Analyst'], ['Administrator', 'Analyst']],
+  ['Product', ['Administrator', 'Analyst', 'Tester'], ['Administrator', 'Analyst'], ['Administrator', 'Analyst']],
 ]
 
 const getSubjectForPath = (path) => {
   if (path === '/') {
     return 'General'
   }
-  if (/^\/auth\/users\//.test(path)) {
+  if (/^\/auth\/users(?:\/|$)/.test(path)) {
     return 'User'
   }
   const configMatch = /^\/configuration(\/.*)/.exec(path)

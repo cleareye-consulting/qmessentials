@@ -1,8 +1,6 @@
 import axios from 'axios'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useHistory, useParams } from 'react-router'
-import DisabledInput from '../../DisabledInput'
-import StandardInput from '../../StandardInput'
 
 export default function EditProduct() {
   const history = useHistory()
