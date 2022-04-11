@@ -1,0 +1,26 @@
+services:
+  web:
+    build: .
+    ports:
+     - "3010:3010"
+    links: 
+     - postgres:postgres
+    volumes:
+      - myapp:/home/node/app
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    volumes:
+     - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+     - data:/var/lib/postgresql/data
+    environment:
+     - POSTGRES_PASSWORD=root
+     - POSTGRES_USER=root
+     - POSTGRES_DB=root
+    ports: 
+     - "5432:5432"
+
+volumes:
+  myapp:
+  data:
