@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    ports: 
+      - "${PORT}:${PORT}"
+    environment:
+      - PORT=${PORT}
+      - MONGODB_HOST=dbdata
+      - MONGODB_PORT=${MONGODB_PORT}
+      - MONGODB_DATABASE_NAME=${MONGODB_DATABASE_NAME}
+      - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
+      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD}
+  db:
+    image: mongo:latest
+    volumes:
+      - "dbdata:/var/lib/mongodb/data"
+    ports: 
+      - "${MONGODB_PORT}:${MONGODB_PORT}"
+volumes:
+  dbdata:
