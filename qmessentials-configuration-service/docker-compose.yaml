@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+  qme-config:
+    environment:
+      - USER=qmecfg
+    build: .
+    ports:
+      - "3010:3010"
