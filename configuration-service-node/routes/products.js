@@ -1,8 +1,9 @@
 import { Router } from 'express'
-import { list } from '../controllers/products.js'
+import { getMultiple, post } from '../controllers/products.js'
 
 const router = new Router()
 
-router.get('/', list)
+router.get('/', getMultiple)
+router.post('/', post)
 
 export default router
