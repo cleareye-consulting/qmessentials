@@ -8,11 +8,16 @@ export async function list({ activeOnly }) {
     "select product_id, product_name, product_status from product where case when $1::boolean is null then true else product_status = 'Active' end;",
     [activeOnly]
   )
-  return rows
+  return rows.map((r) => {
+    return {
+      productId: r.product_id,
+      productName: r.product_name,
+      productStatus: r.product_status,
+    }
+  })
 }
 
 export async function add(product, userId) {
-  logger.info(`Call to add product from user ${userId}`)
   const pool = new Pool()
   const result = await pool.query(
     'insert into product (product_id, product_name, product_status, created_date, created_by_user_id, last_updated_date, last_updated_by_user_id) \
@@ -22,4 +27,17 @@ export async function add(product, userId) {
     [product.productId, product.productName, 'Active', new Date(), userId]
   )
   return result.rows[0].product_id
+}
+
+export async function update(productId, product, userId) {
+  const pool = new Pool()
+  await pool.query(
+    'update product \
+    set product_name = $1::text, \
+      product_status = $2::text, \
+      last_updated_date = $3, \
+      last_updated_by_user_id = $4 \
+    where product_id = $5',
+    [product.productName, product.productStatus, new Date(), userId, productId]
+  )
 }
