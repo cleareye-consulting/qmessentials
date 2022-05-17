@@ -1,5 +1,10 @@
 import bcrypt from 'bcryptjs'
 
 export async function hashPassword(plainTextPassword) {
-  return await bcrypt.hash(plainTextPassword, 10)
+  return bcrypt.hash(plainTextPassword, 10)
+}
+
+export async function comparePasswords(inputPlainTextPassword, storedHashedPassword) {
+  const match = await bcrypt.compare(inputPlainTextPassword, storedHashedPassword)
+  return match
 }

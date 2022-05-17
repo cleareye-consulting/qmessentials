@@ -1,16 +1,12 @@
 import { Router } from 'express'
 import { getUser } from '../repositories/users.js'
-var router = Router()
+const router = Router()
 
-/* GET users listing. */
-router.get('/', function (req, res, next) {
-  res.send('respond with a resource')
-})
-
-router.get('/:userId', async function (req, res, next) {
+router.get('/:userId', async (req, res) => {
   const { userId } = req.params
   const user = await getUser(userId)
-  res.send(user)
+  const limitedUser = { userId: user.userId, givenNames: user.givenNames, familyNames: user.familyNames, roles: user.roles }
+  res.send(limitedUser)
 })
 
 export default router
