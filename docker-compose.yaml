@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+  qme-config:
+    environment:
+      - USER=qmecfg
+      - PORT=3010
+      - PGUSER=qmecfg
+      - PGPASSWORD=n0tS3cr3t!
+      - PGDATABASE=qmecfg
+      - PGHOST=qme-config-db
+      - PGPORT=5432
+    build: ./configuration-service-node
+    ports:
+      - "3010:3010"
+  qme-config-db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=qmecfg
+      - POSTGRES_PASSWORD=n0tS3cr3t!
+    ports:
+      - "5410:5432"
+    volumes:
+      - qme-config-db-volume:/var/lib/postgresql/data
+  qme-auth:
+    environment:
+      - PORT=3020
+      - MONGODB_HOST=qme-auth-db
+      - MONGODB_PORT=27017
+      - MONGODB_DATABASE_NAME=auth
+      - DEFAULT_ADMIN_USER=admin
+      - INITIAL_ADMIN_PASSWORD=changeMeNow!!!
+      - JWT_SECRET=NotVerySecret!
+    build: ./auth-service-node
+    ports:
+      - "3020:3020"
+  qme-auth-db:
+    image: mongo:latest
+    volumes:
+      - "qme-auth-db-volume:/data/db"
+    ports:
+      - "27017:27017"
+volumes:
+  qme-config-db-volume:
+  qme-auth-db-volume:
