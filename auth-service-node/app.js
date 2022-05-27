@@ -8,7 +8,7 @@ import usersRouter from './routes/users.js'
 import loginsRouter from './routes/logins.js'
 import permissionsRouter from './routes/permissions.js'
 
-import { bootstrapAdminUser } from './repositories/users.js'
+import { bootstrapAdminUser, bootstrapServiceAccounts } from './repositories/users.js'
 import { addTokenUserToRequest } from './middleware/tokenParser.js'
 
 const app = express()
@@ -43,5 +43,6 @@ app.use('/logins', loginsRouter)
 app.use('/permissions', permissionsRouter)
 
 bootstrapAdminUser()
+bootstrapServiceAccounts()
 
 export default app

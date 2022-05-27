@@ -32,11 +32,6 @@ app.use(json())
 app.use(urlencoded({ extended: false }))
 app.use(cookieParser())
 
-app.use((req, res, next) => {
-  req.user = 'default'
-  next()
-})
-
 app.use('/', indexRouter)
 app.use('/products', productsRouter)
 

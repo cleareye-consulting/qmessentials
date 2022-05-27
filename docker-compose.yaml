@@ -9,6 +9,8 @@ services:
       - PGDATABASE=qmecfg
       - PGHOST=qme-config-db
       - PGPORT=5432
+      - AUTH_SERVICE_ENDPOINT=http://qme-auth:3020
+      - REDIS_URL=redis://qme-config-redis:6379
     build: ./configuration-service-node
     ports:
       - "3010:3010"
@@ -21,6 +23,10 @@ services:
       - "5410:5432"
     volumes:
       - qme-config-db-volume:/var/lib/postgresql/data
+  qme-config-redis:
+    image: redis
+    ports:
+      - "6379:6379"
   qme-auth:
     environment:
       - PORT=3020

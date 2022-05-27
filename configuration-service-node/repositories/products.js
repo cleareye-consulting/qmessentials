@@ -1,5 +1,4 @@
 import pkg from 'pg'
-import { logger } from '../app.js'
 const { Pool } = pkg
 
 export async function list({ activeOnly }) {
