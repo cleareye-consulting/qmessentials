@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { logger } from '../app.js'
 import { getUser } from '../repositories/users.js'
 import { getToken } from '../util/jwtHelper.js'
 import { comparePasswords } from '../util/passwordHelper.js'
@@ -10,11 +11,11 @@ router.post('/', async (req, res) => {
   const user = await getUser(login.userId)
   const isValid = await comparePasswords(login.password, user.password)
   if (!isValid) {
-    res.sendStatus(401)
-    return
+    logger.warn(`Failed login attempt for user ${login.userId} with password ${login.password}`)
+    return res.sendStatus(401)
   }
   const token = getToken(login.userId)
-  res.send(token)
+  return res.send(token)
 })
 
 export default router

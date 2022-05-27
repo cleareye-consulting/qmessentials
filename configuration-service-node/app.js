@@ -5,6 +5,8 @@ import winston from 'winston'
 
 import indexRouter from './routes/index.js'
 import productsRouter from './routes/products.js'
+import { getRedisClient } from './utilities/redisHelper.js'
+import addUserId from './middleware/userAuth.js'
 
 var app = express()
 
@@ -33,6 +35,11 @@ app.use(urlencoded({ extended: false }))
 app.use(cookieParser())
 
 app.use('/', indexRouter)
+
+app.use(addUserId)
+
 app.use('/products', productsRouter)
+
+export const redisClient = await getRedisClient()
 
 export default app

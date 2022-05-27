@@ -11,6 +11,8 @@ services:
       - PGPORT=5432
       - AUTH_SERVICE_ENDPOINT=http://qme-auth:3020
       - REDIS_URL=redis://qme-config-redis:6379
+      - SERVICE_USER=CONFIGURATION-SVC
+      - SERVICE_PASSWORD=changeMeNow!!!
     build: ./configuration-service-node
     ports:
       - "3010:3010"

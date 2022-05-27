@@ -1,4 +1,4 @@
-import { userHasPermissions } from '../middleware/permissionChecker.js'
+import { userHasPermissions } from '../utilities/permissionChecker.js'
 import { list as listProducts, select as selectProduct, add as addProduct, update as updateProduct } from '../repositories/products.js'
 
 export async function getMultiple(req, res) {

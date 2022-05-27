@@ -1,6 +1,8 @@
+import { logger } from '../app.js'
 import { getUser } from '../repositories/users.js'
 
 export async function isAuthorized(userId, permission) {
+  logger.info(`Checking '${permission}' permission for user '${userId}'`)
   const user = await getUser(userId)
   if (user.roles.includes('Administrator')) {
     return true

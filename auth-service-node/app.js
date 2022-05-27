@@ -36,10 +36,10 @@ app.use(urlencoded({ extended: false }))
 app.use(cookieParser())
 
 app.use('/', indexRouter)
+app.use('/logins', loginsRouter)
 
 app.use(addTokenUserToRequest) //This middleware returns 401 if there's not a valid bearer token
 app.use('/users', usersRouter)
-app.use('/logins', loginsRouter)
 app.use('/permissions', permissionsRouter)
 
 bootstrapAdminUser()

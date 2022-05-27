@@ -1,18 +1,21 @@
 import { logger } from '../app.js'
 import { verifyToken } from '../util/jwtHelper.js'
 
+export function getUserIdFromToken(token) {
+  const parsed = verifyToken(token)
+  return parsed.sub
+}
+
 export function addTokenUserToRequest(req, res, next) {
   const authHeader = req.headers.authorization
   if (!authHeader) {
     logger.warn('No user ID on request')
-    res.sendStatus(401)
-    return
+    return res.sendStatus(401)
   }
   const authHeaderMatch = /^Bearer (.*)/i.exec(authHeader)
   if (!authHeaderMatch) {
     logger.warn('Non-bearer auth header found')
-    res.sendStatus(403)
-    return
+    return res.sendStatus(403)
   }
   const token = authHeaderMatch[1]
   const parsed = verifyToken(token)

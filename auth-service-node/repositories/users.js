@@ -59,17 +59,29 @@ export async function bootstrapAdminUser() {
 }
 
 export async function bootstrapServiceAccounts() {
-  for (let service of ['Auth', 'Observation', 'Configuration', 'Subscription']) {
-    const exists = (await findUsersByRole(`${service} service`)) ? true : false
-    if (!exists) {
-      logger.warn(`Bootstrapping user ${service} Service with initial password`)
-      await addUser({
-        userId: `${service.toUpperCase()}-SVC`,
-        roles: [`${service} Service`],
-        givenNames: [service],
-        familyNames: ['Service'],
-        password: process.env.INITIAL_ADMIN_PASSWORD,
-      })
+  const [_, connection, db] = await getMongoClient()
+  try {
+    const allUsers = await db.collection('users').find({}).toArray()
+    for (let service of ['Auth', 'Observation', 'Configuration', 'Subscription']) {
+      let exists = false
+      for (let user of allUsers) {
+        if (user.roles.length === 1 && user.roles[0] === `${service} Service`) {
+          exists = true
+          break
+        }
+      }
+      if (!exists) {
+        logger.warn(`Bootstrapping user ${service} Service with initial password`)
+        await addUser({
+          userId: `${service.toUpperCase()}-SVC`,
+          roles: [`${service} Service`],
+          givenNames: [service],
+          familyNames: ['Service'],
+          password: process.env.INITIAL_ADMIN_PASSWORD,
+        })
+      }
     }
+  } finally {
+    connection.close()
   }
 }
