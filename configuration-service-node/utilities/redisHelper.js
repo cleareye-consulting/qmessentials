@@ -12,7 +12,7 @@ export async function getUserIdForToken(client, token) {
 }
 
 export async function addUserIdForToken(client, token, userId) {
-  await client.set(`token${token}`, userId)
+  await client.set(`token${token}`, userId, 'EX', 60 * 10)
 }
 
 export async function getServiceToken(client) {
@@ -20,6 +20,6 @@ export async function getServiceToken(client) {
   return token
 }
 
-export async function addServiceToken(client, token) {
-  await client.set('service_token', token)
+export async function setServiceToken(client, token) {
+  await client.set('service_token', token, 'EX', 60 * 30)
 }

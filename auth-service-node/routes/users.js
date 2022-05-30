@@ -21,6 +21,9 @@ router.get('/', async (req, res) => {
     throw 'User can only be retrieved by ID or token'
   }
   const userId = getUserIdFromToken(token)
+  if (!userId) {
+    return res.sendStatus(401)
+  }
   const limitedUser = await getLimitedUserById(userId)
   return res.send([limitedUser]) //returning an array for consistency with convention;
   //later versions of this method might allow other types of user searches

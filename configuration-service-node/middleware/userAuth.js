@@ -1,5 +1,5 @@
 import { getUsers } from '../apis/authService.js'
-import { redisClient } from '../app.js'
+import { redisClient, logger } from '../app.js'
 import { addUserIdForToken, getUserIdForToken } from '../utilities/redisHelper.js'
 
 export default async function addUserId(req, res, next) {
@@ -16,11 +16,11 @@ export default async function addUserId(req, res, next) {
   const token = authHeaderMatch[1]
   const userIdFromRedis = getUserIdForToken(redisClient, token)
   if (userIdFromRedis) {
-    req.userId = userIdFromRedis
+    req.user = userIdFromRedis
   } else {
     const userId = await getUsers(token)[0].userId
     addUserIdForToken(redisClient, token, userId)
-    req.userId = userId
+    req.user = userId
   }
   next()
 }

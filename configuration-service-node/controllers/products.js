@@ -2,7 +2,7 @@ import { userHasPermissions } from '../utilities/permissionChecker.js'
 import { list as listProducts, select as selectProduct, add as addProduct, update as updateProduct } from '../repositories/products.js'
 
 export async function getMultiple(req, res) {
-  if (!userHasPermissions(req.userId, 'VIEW PRODUCTS')) {
+  if (!userHasPermissions(req.user, 'VIEW PRODUCTS')) {
     return res.sendStatus(403)
   }
   const activeOnly = req.query ? req.query.activeOnly : null
@@ -11,7 +11,7 @@ export async function getMultiple(req, res) {
 }
 
 export async function getSingle(req, res) {
-  if (!userHasPermissions(req.userId, 'VIEW PRODUCTS')) {
+  if (!userHasPermissions(req.user, 'VIEW PRODUCTS')) {
     return res.sendStatus(403)
   }
   const result = await selectProduct(req.params['productId'])
@@ -19,7 +19,7 @@ export async function getSingle(req, res) {
 }
 
 export async function post(req, res) {
-  if (!userHasPermissions(req.userId, 'CREATE PRODUCTS')) {
+  if (!userHasPermissions(req.user, 'CREATE PRODUCTS')) {
     return res.sendStatus(403)
   }
   const id = await addProduct(req.body, req.user)
@@ -27,7 +27,7 @@ export async function post(req, res) {
 }
 
 export async function put(req, res) {
-  if (!userHasPermissions(req.userId, 'EDIT PRODUCTS')) {
+  if (!userHasPermissions(req.user, 'EDIT PRODUCTS')) {
     return res.sendStatus(403)
   }
   await updateProduct(req.params['productId'], req.body, req.user)

@@ -4,7 +4,7 @@ import { isAuthorized } from '../util/permissionHelper.js'
 const router = Router()
 
 router.get('/', async (req, res) => {
-  if (!(await isAuthorized(req.userId, 'CHECK PERMISSIONS'))) {
+  if (!(await isAuthorized(req.user, 'CHECK PERMISSIONS'))) {
     return res.send(false)
   }
   const { userId, permissionName } = req.query
