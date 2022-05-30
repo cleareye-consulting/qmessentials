@@ -1,5 +1,8 @@
 # pull official base image
-FROM node:15.12.0-alpine3.10
+FROM node:18-alpine3.14
+
+#install python to make node-gyp work
+RUN apk add g++ make py3-pip
 
 # set working directory
 WORKDIR /app
@@ -11,7 +14,7 @@ ENV PATH /app/node_modules/.bin:$PATH
 COPY package.json ./
 COPY package-lock.json ./
 RUN npm install
-RUN npm install react-scripts@3.4.1 -g --silent
+RUN npm install react-scripts@5.0.1 -g --silent
 
 # add app
 COPY . ./

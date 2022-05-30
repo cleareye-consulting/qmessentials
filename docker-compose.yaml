@@ -1,3 +1,5 @@
+#This file is intended for local development purposes only. It contains secrets that in a
+#real application environment would be stored securely within the environment.
 version: "3.9"
 services:
   qme-config:
@@ -47,6 +49,13 @@ services:
       - "qme-auth-db-volume:/data/db"
     ports:
       - "27017:27017"
+  qme-client:
+    environment:
+     - REACT_APP_CONFIGURATION_SERVICE=http://qme-config:3010
+     - REACT_APP_AUTH_SERVICE=http://qme-auth:3020
+    build: ./client-react
+    ports:
+      - "3000:3000"
 volumes:
   qme-config-db-volume:
   qme-auth-db-volume:
