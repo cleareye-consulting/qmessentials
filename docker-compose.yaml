@@ -1,0 +1,61 @@
+#This file is intended for local development purposes only. It contains secrets that in a
+#real application environment would be stored securely within the environment.
+version: "3.9"
+services:
+  qme-config:
+    environment:
+      - USER=qmecfg
+      - PORT=3010
+      - PGUSER=qmecfg
+      - PGPASSWORD=n0tS3cr3t!
+      - PGDATABASE=qmecfg
+      - PGHOST=qme-config-db
+      - PGPORT=5432
+      - AUTH_SERVICE_ENDPOINT=http://qme-auth:3020
+      - REDIS_URL=redis://qme-config-redis:6379
+      - SERVICE_USER=CONFIGURATION-SVC
+      - SERVICE_PASSWORD=changeMeNow!!!
+    build: ./configuration-service-node
+    ports:
+      - "3010:3010"
+  qme-config-db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=qmecfg
+      - POSTGRES_PASSWORD=n0tS3cr3t!
+    ports:
+      - "5410:5432"
+    volumes:
+      - qme-config-db-volume:/var/lib/postgresql/data
+  qme-config-redis:
+    image: redis
+    ports:
+      - "6379:6379"
+  qme-auth:
+    environment:
+      - PORT=3020
+      - MONGODB_HOST=qme-auth-db
+      - MONGODB_PORT=27017
+      - MONGODB_DATABASE_NAME=auth
+      - DEFAULT_ADMIN_USER=admin
+      - INITIAL_ADMIN_PASSWORD=changeMeNow!!!
+      - JWT_SECRET=NotVerySecret!
+    build: ./auth-service-node
+    ports:
+      - "3020:3020"
+  qme-auth-db:
+    image: mongo:latest
+    volumes:
+      - "qme-auth-db-volume:/data/db"
+    ports:
+      - "27017:27017"
+  qme-client:
+    environment:
+     - REACT_APP_CONFIGURATION_SERVICE=http://qme-config:3010
+     - REACT_APP_AUTH_SERVICE=http://qme-auth:3020
+    build: ./client-react
+    ports:
+      - "3000:3000"
+volumes:
+  qme-config-db-volume:
+  qme-auth-db-volume:

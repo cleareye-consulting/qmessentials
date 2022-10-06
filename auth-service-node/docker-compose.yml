@@ -1,0 +1,21 @@
+services:
+  app:
+    build: .
+    ports: 
+      - "${PORT}:${PORT}"
+    environment:
+      - PORT=${PORT}
+      - MONGODB_HOST=qme-auth-db
+      - MONGODB_PORT=${MONGODB_PORT}
+      - MONGODB_DATABASE_NAME=${MONGODB_DATABASE_NAME}
+      - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
+      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+  qme-auth-db:
+    image: mongo:latest
+    volumes:
+      - "qme-auth-db-volume:/data/db"
+    ports: 
+      - "${MONGODB_PORT}:${MONGODB_PORT}"
+volumes:
+  qme-auth-db-volume:
